@@ -27,6 +27,14 @@ class SessionManager {
     return _prefs.getString(StorageKeys.userSession);
   }
 
+  Future<void> cacheData(String key, String jsonStr) async {
+    await _prefs.setString(key, jsonStr);
+  }
+
+  String? getCachedData(String key) {
+    return _prefs.getString(key);
+  }
+
   Future<void> clearSession() async {
     await _secureStorage.delete(key: StorageKeys.accessToken);
     await _secureStorage.delete(key: StorageKeys.refreshToken);

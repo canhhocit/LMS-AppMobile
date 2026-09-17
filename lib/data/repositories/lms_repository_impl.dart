@@ -108,18 +108,40 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // StudentRepository & LmsRepository
   @override
   Future<List<CourseClassEntity>> getMyClasses([bool isLecturer = false]) async {
-    final endpoint = isLecturer ? ApiEndpoints.lecturerClasses : ApiEndpoints.studentClasses;
-    final res = await _dio.get(endpoint);
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => CourseClassEntity.fromJson(e as Map<String, dynamic>)).toList();
+    final cacheKey = 'cache_my_classes_${isLecturer ? "lec" : "stu"}';
+    try {
+      final endpoint = isLecturer ? ApiEndpoints.lecturerClasses : ApiEndpoints.studentClasses;
+      final res = await _dio.get(endpoint);
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      await sessionManager.cacheData(cacheKey, jsonEncode(list));
+      return list.map((e) => CourseClassEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      final cachedStr = sessionManager.getCachedData(cacheKey);
+      if (cachedStr != null && cachedStr.isNotEmpty) {
+        final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
+        return list.map((e) => CourseClassEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
+      return [];
+    }
   }
 
   @override
   Future<List<ScheduleItemEntity>> getMySchedule([bool isLecturer = false]) async {
-    final endpoint = isLecturer ? ApiEndpoints.lecturerSchedule : ApiEndpoints.studentSchedule;
-    final res = await _dio.get(endpoint);
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => ScheduleItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+    final cacheKey = 'cache_my_schedule_${isLecturer ? "lec" : "stu"}';
+    try {
+      final endpoint = isLecturer ? ApiEndpoints.lecturerSchedule : ApiEndpoints.studentSchedule;
+      final res = await _dio.get(endpoint);
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      await sessionManager.cacheData(cacheKey, jsonEncode(list));
+      return list.map((e) => ScheduleItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      final cachedStr = sessionManager.getCachedData(cacheKey);
+      if (cachedStr != null && cachedStr.isNotEmpty) {
+        final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
+        return list.map((e) => ScheduleItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
+      return [];
+    }
   }
 
   @override

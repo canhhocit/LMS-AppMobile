@@ -9,6 +9,7 @@ import '../../core/widgets/app_text_field.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../auth/login_screen.dart';
+import '../../app.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -364,7 +365,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
 
             // Security Settings
-            Text('Bảo mật & Tai khoản', style: AppTextStyles.h3),
+            Text('Bảo mật & Tài khoản', style: AppTextStyles.h3),
             const SizedBox(height: 12),
             AppCard(
               onTap: _showChangePasswordDialog,
@@ -390,6 +391,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Theme Settings Card
+            Text('Giao diện & Cài đặt', style: AppTextStyles.h3),
+            const SizedBox(height: 12),
+            AppCard(
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      themeNotifier.value == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Chế độ Tối (Dark Mode)', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 2),
+                        Text('Bật/Tắt giao diện tối bảo vệ mắt', style: AppTextStyles.caption),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: themeNotifier.value == ThemeMode.dark,
+                    activeColor: AppColors.primary,
+                    onChanged: (isDark) {
+                      setState(() {
+                        themeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
+                      });
+                    },
+                  ),
                 ],
               ),
             ),
