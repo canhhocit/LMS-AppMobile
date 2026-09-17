@@ -6,25 +6,25 @@ class ApiEndpoints {
   static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String refreshToken = '/auth/refresh';
-  static const String me = '/me';
+  static const String me = '/me/profile';
   static const String changePassword = '/me/change-password';
 
-  // Student Endpoints
-  static const String studentClasses = '/student/classes';
-  static const String studentSchedule = '/student/schedule';
-  static const String studentGrades = '/student/grades';
-  static const String studentTuition = '/student/tuition';
-  static const String studentProfile = '/student/profile';
-  static const String studentAttendance = '/student/attendance';
+  // Student & Lecturer Endpoints (Backend uses /me/* endpoints)
+  static const String studentClasses = '/me/classes';
+  static const String studentSchedule = '/me/schedule';
+  static const String studentGrades = '/me/grades';
+  static const String studentTuition = '/me/tuition';
+  static const String studentProfile = '/me/profile';
+  static const String studentAttendance = '/me/attendance';
 
   // Lecturer Endpoints
-  static const String lecturerClasses = '/lecturer/classes';
-  static const String lecturerSchedule = '/lecturer/schedule';
-  static const String lecturerProfile = '/lecturer/profile';
+  static const String lecturerClasses = '/me/classes';
+  static const String lecturerSchedule = '/me/schedule';
+  static const String lecturerProfile = '/me/profile';
 
   // Course & Class Detail Endpoints
-  static String classDetail(int classId) => '/classes/$classId';
-  static String classChapters(int classId) => '/classes/$classId/chapters';
+  static String classDetail(int classId) => '/me/classes/$classId';
+  static String classChapters(int classId) => '/me/classes/$classId/chapters';
   static String markLessonProgress(int lessonId) => '/lessons/$lessonId/progress';
   
   // Assignments
@@ -44,28 +44,28 @@ class ApiEndpoints {
 
   // Attendance (Lecturer)
   static String classAttendance(int classId) => '/classes/$classId/attendance';
-  static String markAttendance(int classId) => '/classes/$classId/attendance/mark';
+  static String markAttendance(int classId) => '/classes/$classId/attendance';
 
   // Gradebook (Lecturer)
   static String classGradebook(int classId) => '/classes/$classId/grades';
-  static String updateStudentGrade(int classId, int studentId) => '/classes/$classId/grades/$studentId';
+  static String updateStudentGrade(int classId, int studentId) => '/classes/$classId/grades';
   static String publishGrades(int classId) => '/classes/$classId/grades/publish';
 
   // Course Registration (Student)
-  static const String activeRegistrationPeriod = '/registration/active-period';
-  static const String availableCourseClasses = '/registration/available-classes';
-  static const String myRegistrations = '/registration/my-registrations';
-  static String registerCourse(int classId) => '/registration/register/$classId';
-  static String cancelRegistration(int classId) => '/registration/cancel/$classId';
+  static const String activeRegistrationPeriod = '/registration-periods/active';
+  static const String availableCourseClasses = '/me/classes/available';
+  static const String myRegistrations = '/me/registrations';
+  static String registerCourse(int classId) => '/registration/$classId';
+  static String cancelRegistration(int classId) => '/registration/$classId';
 
   // Notifications
   static const String notifications = '/me/notifications';
   static const String unreadNotificationCount = '/me/notifications/unread-count';
-  static String markNotificationRead(int id) => '/me/notifications/$id/read';
+  static String markNotificationRead(int id) => '/notifications/$id/read';
 
   // AI Learning Advisor
-  static const String aiAdvisorChat = '/ai/advisor/chat';
+  static const String aiAdvisorChat = '/ai/advisor/ask';
 
   // Tuition Payment
-  static String payTuition(int invoiceId) => '/student/tuition/$invoiceId/pay';
+  static String payTuition(int invoiceId) => '/me/tuition/$invoiceId/pay';
 }
