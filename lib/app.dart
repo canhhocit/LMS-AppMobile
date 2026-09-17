@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
-import 'feature/auth/login_screen.dart';
+import 'feature/auth/splash_screen.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
 
@@ -18,7 +18,7 @@ class LearningHubApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: currentMode,
-          home: const LoginScreen(),
+          home: const SplashScreen(),
         );
       },
     );
