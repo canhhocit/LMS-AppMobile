@@ -83,6 +83,28 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     await sessionManager.clearSession();
   }
 
+  @override
+  Future<UserEntity> updateProfile({String? personalEmail, String? fullName, String? avatarUrl}) async {
+    final currentUser = await getCurrentUser();
+    final res = await _dio.put(ApiEndpoints.studentProfile, data: {
+      'fullName': fullName ?? currentUser?.fullName ?? '',
+      if (personalEmail != null) 'personalEmail': personalEmail,
+      if (avatarUrl != null) 'avatarUrl': avatarUrl,
+    });
+    final result = _unwrap(res);
+    final user = UserEntity.fromJson(result as Map<String, dynamic>);
+    await sessionManager.saveUserJson(jsonEncode(user.toJson()));
+    return user;
+  }
+
+  @override
+  Future<void> changePassword(String oldPassword, String newPassword) async {
+    await _dio.post('/auth/change-password', data: {
+      'oldPassword': oldPassword,
+      'newPassword': newPassword,
+    });
+  }
+
   // StudentRepository & LmsRepository
   @override
   Future<List<CourseClassEntity>> getMyClasses([bool isLecturer = false]) async {
