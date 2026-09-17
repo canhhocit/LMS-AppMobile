@@ -9,12 +9,14 @@ extension CourseClassDtoMapper on CourseClassDto {
     return CourseClassEntity(
       id: id,
       classCode: classCode,
-      courseName: courseName,
-      teacherName: teacherName,
+      className: courseName,
+      courseTitle: courseName,
+      lecturerName: teacherName,
       room: room,
       scheduleText: scheduleText,
-      studentCount: studentCount,
+      enrolledCount: studentCount,
       semester: semester,
+      academicYear: '2026-2027',
     );
   }
 }

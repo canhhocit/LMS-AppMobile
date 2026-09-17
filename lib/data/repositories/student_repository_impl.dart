@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import '../../core/constants/api_endpoints.dart';
-import '../../core/error/failures.dart';
 import '../../core/network/dio_client.dart';
 import '../../domain/entities/class_entity.dart';
 import '../../domain/entities/grade_entity.dart';
@@ -27,32 +26,38 @@ class StudentRepositoryImpl implements StudentRepository {
         const CourseClassEntity(
           id: 1,
           classCode: '62PM1_L01',
-          courseName: 'Lập trình ứng dụng di động (Flutter)',
-          teacherName: 'TS. Nguyễn Văn A',
+          className: 'Lớp 62PM1_L01',
+          courseTitle: 'Lập trình ứng dụng di động (Flutter)',
+          lecturerName: 'TS. Nguyễn Văn A',
           room: 'P.302-A2',
           scheduleText: 'Thứ 2 (07:00 - 09:30)',
-          studentCount: 45,
-          semester: 'Học kỳ 1 - 2024-2025',
+          enrolledCount: 45,
+          semester: 'Học kỳ 1',
+          academicYear: '2024-2025',
         ),
         const CourseClassEntity(
           id: 2,
           classCode: '62PM1_L02',
-          courseName: 'Công nghệ phần mềm nâng cao',
-          teacherName: 'PGS.TS Trần Thị B',
+          className: 'Lớp 62PM1_L02',
+          courseTitle: 'Công nghệ phần mềm nâng cao',
+          lecturerName: 'PGS.TS Trần Thị B',
           room: 'P.405-A1',
           scheduleText: 'Thứ 4 (09:40 - 11:30)',
-          studentCount: 42,
-          semester: 'Học kỳ 1 - 2024-2025',
+          enrolledCount: 42,
+          semester: 'Học kỳ 1',
+          academicYear: '2024-2025',
         ),
         const CourseClassEntity(
           id: 3,
           classCode: '62PM1_L03',
-          courseName: 'Kiến trúc máy tính & Hệ điều hành',
-          teacherName: 'ThS. Lê Hoàng C',
+          className: 'Lớp 62PM1_L03',
+          courseTitle: 'Kiến trúc máy tính & Hệ điều hành',
+          lecturerName: 'ThS. Lê Hoàng C',
           room: 'P.201-B3',
           scheduleText: 'Thứ 6 (13:30 - 16:00)',
-          studentCount: 50,
-          semester: 'Học kỳ 1 - 2024-2025',
+          enrolledCount: 50,
+          semester: 'Học kỳ 1',
+          academicYear: '2024-2025',
         ),
       ];
     }

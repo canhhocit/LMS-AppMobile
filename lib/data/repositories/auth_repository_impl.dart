@@ -40,7 +40,7 @@ class AuthRepositoryImpl implements AuthRepository {
         'email': entity.email,
         'role': entity.role,
         'studentCode': entity.studentCode,
-        'facultyName': entity.facultyName,
+        'faculty': entity.faculty,
         'curriculumName': entity.curriculumName,
         'adminClassName': entity.adminClassName,
       });
@@ -68,17 +68,58 @@ class AuthRepositoryImpl implements AuthRepository {
       final Map<String, dynamic> map = jsonDecode(jsonStr);
       return UserEntity(
         id: map['id'] ?? 1,
-        username: map['username'] ?? '',
         fullName: map['fullName'] ?? '',
-        email: map['email'] ?? '',
+        email: map['email'] ?? map['username'] ?? '',
         role: map['role'] ?? 'STUDENT',
         studentCode: map['studentCode'],
-        facultyName: map['facultyName'],
+        faculty: map['facultyName'] ?? map['faculty'],
         curriculumName: map['curriculumName'],
         adminClassName: map['adminClassName'],
       );
     } catch (_) {
       return null;
+    }
+  }
+
+  @override
+  Future<UserEntity> updateProfile({String? personalEmail, String? fullName, String? avatarUrl}) async {
+    final current = await getCurrentUser();
+    if (current == null) throw const AuthFailure('Người dùng chưa đăng nhập');
+    final updated = UserEntity(
+      id: current.id,
+      fullName: fullName ?? current.fullName,
+      email: current.email,
+      personalEmail: personalEmail ?? current.personalEmail,
+      role: current.role,
+      studentCode: current.studentCode,
+      lecturerCode: current.lecturerCode,
+      faculty: current.faculty,
+      major: current.major,
+      adminClassName: current.adminClassName,
+      curriculumName: current.curriculumName,
+      avatarUrl: avatarUrl ?? current.avatarUrl,
+      token: current.token,
+      refreshToken: current.refreshToken,
+    );
+    await sessionManager.saveUserJson(jsonEncode(updated.toJson()));
+    return updated;
+  }
+
+  @override
+  Future<void> changePassword(String oldPassword, String newPassword) async {
+    try {
+      await dioClient.dio.post(
+        ApiEndpoints.changePassword,
+        data: {
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] ?? 'Đổi mật khẩu thất bại.';
+      throw AuthFailure(msg);
+    } catch (_) {
+      throw const AuthFailure('Lỗi không xác định khi đổi mật khẩu.');
     }
   }
 }

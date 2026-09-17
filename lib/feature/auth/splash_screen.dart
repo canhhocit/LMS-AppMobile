@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (user != null) {
         // Auto-login: User token exists and is valid!
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => MainTabScreen(user: user)),
+          MaterialPageRoute(builder: (_) => const MainTabScreen()),
         );
       } else {
         // No saved session -> Go to Login

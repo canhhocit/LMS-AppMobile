@@ -24,8 +24,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lmsRepo = getIt<LmsRepository>();
-
     return BlocProvider(
       create: (_) => HomeCubit(
         authRepository: getIt(),

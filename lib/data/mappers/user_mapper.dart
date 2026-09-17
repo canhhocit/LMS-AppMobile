@@ -5,14 +5,15 @@ extension LoginResponseDtoMapper on LoginResponseDto {
   UserEntity toEntity() {
     return UserEntity(
       id: 1, // Default or parsed from JWT payload
-      username: username,
       fullName: fullName,
       email: email,
       role: role,
       studentCode: studentCode,
-      facultyName: facultyName,
+      faculty: facultyName,
       curriculumName: curriculumName,
       adminClassName: adminClassName,
+      token: token,
+      refreshToken: refreshToken,
     );
   }
 }
