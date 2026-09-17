@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "123456789000",
-    "project_id": "learninghub-lms-app",
-    "storage_bucket": "learninghub-lms-app.appspot.com"
+    "project_number": "281850936955",
+    "project_id": "learninghub-f5f11",
+    "storage_bucket": "learninghub-f5f11.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789000:android:abcdef1234567890",
+        "mobilesdk_app_id": "1:281850936955:android:d45fec7c97686faf396cde",
         "android_client_info": {
-          "package_name": "com.ex.learninghub.app_mobile"
+          "package_name": "com.resilientforge.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDummyKeyForLearningHubAppMobile123456"
+          "current_key": "AIzaSyDxYC_CclQhEnhTERNotcBxETZChnsJxGU"
         }
       ],
       "services": {
