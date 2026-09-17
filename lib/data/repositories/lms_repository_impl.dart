@@ -257,6 +257,19 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     });
   }
 
+  @override
+  Future<bool> submitQrAttendance(int classId, String otpToken) async {
+    try {
+      await _dio.post('/attendance/qr/validate', data: {
+        'classId': classId,
+        'otpToken': otpToken,
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Gradebook / Transcript
   @override
   Future<List<GradeEntity>> getStudentGrades() async {

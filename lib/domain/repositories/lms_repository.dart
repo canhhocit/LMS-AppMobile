@@ -47,6 +47,7 @@ abstract class LmsRepository {
   Future<List<StudentAttendanceSummary>> getStudentAttendanceSummary();
   Future<List<AttendanceEntity>> getClassAttendance(int classId);
   Future<void> markClassAttendance(int classId, String date, List<Map<String, dynamic>> records);
+  Future<bool> submitQrAttendance(int classId, String otpToken);
 
   // Gradebook / Transcript
   Future<List<GradeEntity>> getStudentGrades();

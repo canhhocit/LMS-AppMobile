@@ -143,6 +143,20 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
                 ],
               ),
             ),
+          // Quick suggestion chips
+          Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildPromptChip('🎯 Lộ trình cải thiện GPA?'),
+                _buildPromptChip('📚 Kinh nghiệm học môn khó?'),
+                _buildPromptChip('⚠️ Kiểm tra nguy cơ cảnh báo?'),
+                _buildPromptChip('⏰ Bí quyết quản lý thời gian?'),
+              ],
+            ),
+          ),
           Container(
             padding: const EdgeInsets.all(12),
             color: Colors.white,
@@ -171,6 +185,21 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPromptChip(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ActionChip(
+        label: Text(text, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+        backgroundColor: AppColors.primary.withOpacity(0.08),
+        side: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+        onPressed: () {
+          _inputCtrl.text = text;
+          _sendMessage();
+        },
       ),
     );
   }
