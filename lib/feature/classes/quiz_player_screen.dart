@@ -104,7 +104,7 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> {
                   attempt.score.toStringAsFixed(1),
                   style: const TextStyle(
                     fontSize: 36,
-                    fontWeight: FontWeight.black,
+                    fontWeight: FontWeight.w900,
                     color: AppColors.primary,
                   ),
                 ),

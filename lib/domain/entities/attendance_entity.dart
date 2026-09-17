@@ -31,6 +31,7 @@ class AttendanceEntity {
 }
 
 class StudentAttendanceSummary {
+  final int classId;
   final String className;
   final String classCode;
   final int presentCount;
@@ -39,6 +40,7 @@ class StudentAttendanceSummary {
   final double absentRatio;
 
   const StudentAttendanceSummary({
+    required this.classId,
     required this.className,
     required this.classCode,
     required this.presentCount,
@@ -49,6 +51,7 @@ class StudentAttendanceSummary {
 
   factory StudentAttendanceSummary.fromJson(Map<String, dynamic> json) {
     return StudentAttendanceSummary(
+      classId: json['classId'] ?? json['class_id'] ?? json['id'] ?? 0,
       className: json['className'] ?? json['class_name'] ?? '',
       classCode: json['classCode'] ?? json['class_code'] ?? '',
       presentCount: json['presentCount'] ?? json['present_count'] ?? 0,
