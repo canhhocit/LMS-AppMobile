@@ -10,6 +10,7 @@ import '../../domain/entities/attendance_entity.dart';
 import '../../domain/entities/class_entity.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/lms_repository.dart';
+import 'quiz_player_screen.dart';
 
 class ClassDetailScreen extends StatefulWidget {
   final CourseClassEntity courseClass;
@@ -533,72 +534,25 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
     final questions = await _repo.getQuizQuestions(quiz.id);
     if (!mounted) return;
     if (questions.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bài quiz chưa có câu hỏi nào')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bài kiểm tra này chưa có câu hỏi nào'), backgroundColor: Colors.orange),
+      );
       return;
     }
 
-    final Map<int, String> userAnswers = {};
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setQuizState) => AlertDialog(
-          title: Text('Kiểm tra: ${quiz.title} (${quiz.durationMinutes} phút)'),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 400,
-            child: ListView.builder(
-              itemCount: questions.length,
-              itemBuilder: (c, i) {
-                final q = questions[i];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Câu ${i + 1}: ${q.questionText}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    RadioListTile<String>(
-                      title: Text('A. ${q.optionA}'),
-                      value: 'A',
-                      groupValue: userAnswers[q.id],
-                      onChanged: (val) => setQuizState(() => userAnswers[q.id] = val!),
-                    ),
-                    RadioListTile<String>(
-                      title: Text('B. ${q.optionB}'),
-                      value: 'B',
-                      groupValue: userAnswers[q.id],
-                      onChanged: (val) => setQuizState(() => userAnswers[q.id] = val!),
-                    ),
-                    RadioListTile<String>(
-                      title: Text('C. ${q.optionC}'),
-                      value: 'C',
-                      groupValue: userAnswers[q.id],
-                      onChanged: (val) => setQuizState(() => userAnswers[q.id] = val!),
-                    ),
-                    RadioListTile<String>(
-                      title: Text('D. ${q.optionD}'),
-                      value: 'D',
-                      groupValue: userAnswers[q.id],
-                      onChanged: (val) => setQuizState(() => userAnswers[q.id] = val!),
-                    ),
-                    const Divider(),
-                  ],
-                );
-              },
-            ),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () async {
-                final attempt = await _repo.submitQuizAttempt(quiz.id, userAnswers);
-                Navigator.pop(ctx);
-                _loadAllClassData();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nộp bài thành công! Số điểm đạt được: ${attempt.score}')));
-              },
-              child: const Text('Nộp bài kiểm tra'),
-            ),
-          ],
+    final updated = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizPlayerScreen(
+          quiz: quiz,
+          questions: questions,
         ),
       ),
     );
+
+    if (updated == true) {
+      _loadAllClassData();
+    }
   }
 
   // --- TAB 4: DIỄN ĐÀN (FORUM) ---
