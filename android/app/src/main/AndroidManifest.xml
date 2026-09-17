@@ -7,6 +7,7 @@
    <application
         android:label="LearningHub"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:largeHeap="true"
         android:fullBackupOnly="false"
         android:allowBackup="false"
