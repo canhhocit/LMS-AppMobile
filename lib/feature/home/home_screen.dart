@@ -86,13 +86,13 @@ class HomeScreen extends StatelessWidget {
                                   style: AppTextStyles.caption.copyWith(fontSize: 12),
                                 ),
                                 Text(
-                                  user?.fullName ?? 'Nguyễn Văn A',
+                                  user?.fullName ?? 'Người dùng',
                                   style: AppTextStyles.h2.copyWith(fontSize: 19),
                                 ),
                                 Text(
                                   isLecturer
-                                      ? 'Khoa: ${user?.faculty ?? "Công nghệ thông tin"}'
-                                      : 'Lớp: ${user?.adminClassName ?? "62PM1"} • MSV: ${user?.studentCode ?? "SV001"}',
+                                      ? 'Khoa: ${user?.faculty ?? "Chưa cập nhật"} • MSG: ${user?.lecturerCode ?? "Chưa có"}'
+                                      : 'Lớp: ${user?.adminClassName ?? "Chưa phân lớp"} • MSV: ${user?.studentCode ?? "Chưa có"}',
                                   style: AppTextStyles.body2.copyWith(fontSize: 12),
                                 ),
                               ],

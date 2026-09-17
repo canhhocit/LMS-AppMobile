@@ -31,17 +31,19 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       AppAvatar(
-                        name: user?.fullName ?? 'Sinh Viên',
+                        name: user?.fullName ?? 'Người dùng',
                         radius: 40,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        user?.fullName ?? 'Nguyễn Văn A',
+                        user?.fullName ?? 'Họ và tên',
                         style: AppTextStyles.h2,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Mã SV: ${user?.studentCode ?? "SV62001"} • Role: ${user?.role ?? "STUDENT"}',
+                        user?.isLecturer == true
+                            ? 'Mã GV: ${user?.lecturerCode ?? "Chưa cấp"} • Vai trò: Giảng viên'
+                            : 'Mã SV: ${user?.studentCode ?? "Chưa cấp"} • Vai trò: Sinh viên',
                         style: AppTextStyles.body2,
                       ),
                     ],
@@ -50,7 +52,7 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Academic & Organization Details
-                Text('Thông tin học tập', style: AppTextStyles.h3),
+                Text('Thông tin học tập & Tổ chức', style: AppTextStyles.h3),
                 const SizedBox(height: 12),
                 AppCard(
                   child: Column(
@@ -58,25 +60,25 @@ class ProfileScreen extends StatelessWidget {
                       _buildInfoRow(
                         icon: Icons.domain,
                         label: 'Khoa / Bộ môn',
-                        value: user?.facultyName ?? 'Công nghệ thông tin',
+                        value: user?.facultyName ?? (user?.faculty != null && user!.faculty!.isNotEmpty ? user.faculty! : 'Chưa cập nhật'),
                       ),
                       const Divider(height: 20),
                       _buildInfoRow(
                         icon: Icons.history_edu,
                         label: 'Chương trình đào tạo',
-                        value: user?.curriculumName ?? 'Công nghệ thông tin K65',
+                        value: user?.displayCurriculum ?? 'Chưa cập nhật',
                       ),
                       const Divider(height: 20),
                       _buildInfoRow(
                         icon: Icons.groups,
                         label: 'Lớp hành chính',
-                        value: user?.adminClassName ?? '62PM1',
+                        value: user?.adminClassName ?? 'Chưa phân lớp',
                       ),
                       const Divider(height: 20),
                       _buildInfoRow(
                         icon: Icons.email_outlined,
-                        label: 'Email',
-                        value: user?.email ?? 'student@learninghub.edu.vn',
+                        label: 'Email tài khoản',
+                        value: user?.email ?? 'Chưa cập nhật',
                       ),
                     ],
                   ),
