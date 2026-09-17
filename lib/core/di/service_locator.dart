@@ -2,11 +2,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../data/repositories/student_repository_impl.dart';
+import '../../data/repositories/lms_repository_impl.dart';
 import '../../data/session/session_manager.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/student_repository.dart';
+import '../../domain/repositories/lms_repository.dart';
 import '../network/auth_interceptor.dart';
 import '../network/dio_client.dart';
 
@@ -33,14 +33,13 @@ Future<void> setupServiceLocator() async {
     () => DioClient(getIt()),
   );
 
-  // Repositories
-  getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-      dioClient: getIt(),
-      sessionManager: getIt(),
-    ),
+  // Unified LMS Repository
+  final lmsRepo = LmsRepositoryImpl(
+    dioClient: getIt(),
+    sessionManager: getIt(),
   );
-  getIt.registerLazySingleton<StudentRepository>(
-    () => StudentRepositoryImpl(dioClient: getIt()),
-  );
+
+  getIt.registerSingleton<LmsRepository>(lmsRepo);
+  getIt.registerSingleton<AuthRepository>(lmsRepo);
+  getIt.registerSingleton<StudentRepository>(lmsRepo);
 }

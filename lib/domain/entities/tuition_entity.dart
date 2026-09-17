@@ -16,4 +16,19 @@ class TuitionItemEntity {
   });
 
   double get remainingAmount => totalAmount - paidAmount;
+
+  factory TuitionItemEntity.fromJson(Map<String, dynamic> json) {
+    final statusVal = json['status'] ?? 'UNPAID';
+    final amount = (json['amount'] ?? json['totalAmount'] ?? json['total_amount'] ?? 0.0) as num;
+    final isPaid = statusVal == 'PAID';
+
+    return TuitionItemEntity(
+      id: json['id'] is int ? json['id'] : int.parse((json['id'] ?? 0).toString()),
+      semester: json['semester'] ?? 'HK1',
+      totalAmount: amount.toDouble(),
+      paidAmount: isPaid ? amount.toDouble() : 0.0,
+      status: statusVal,
+      dueDate: json['dueDate'] ?? json['due_date'] ?? json['paidAt'] ?? '',
+    );
+  }
 }

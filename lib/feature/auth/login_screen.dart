@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Hệ thống quản lý học tập & sinh viên',
+                          'Hệ thống học tập',
                           style: AppTextStyles.body2.copyWith(
                             color: Colors.white.withOpacity(0.85),
                           ),
@@ -125,20 +125,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Nhập thông tin tài khoản Sinh viên / Giảng viên để tiếp tục',
+                          'Nhập thông tin tài khoản để tiếp tục',
                           style: AppTextStyles.body2,
                         ),
                         const SizedBox(height: 24),
                         AppTextField(
-                          label: 'Tên đăng nhập hoặc Mã sinh viên',
-                          hint: 'VD: SV62001',
+                          label: 'Email /Mã sinh viên',
+                          hint: '',
                           controller: _usernameController,
                           prefixIcon: Icons.person_outline,
                         ),
                         const SizedBox(height: 16),
                         AppTextField(
                           label: 'Mật khẩu',
-                          hint: '••••••••',
+                          hint: '',
                           controller: _passwordController,
                           isPassword: true,
                           prefixIcon: Icons.lock_outline,
@@ -166,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                             child: Text(
-                              'Dùng thử bản Demo không cần login ➔',
+                              'Demo không cần login ➔',
                               style: AppTextStyles.body2.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600,

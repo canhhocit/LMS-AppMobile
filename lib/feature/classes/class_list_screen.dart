@@ -5,12 +5,29 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/app_badge.dart';
 import '../../core/widgets/app_card.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/repositories/lms_repository.dart';
 import 'class_cubit.dart';
 import 'class_detail_screen.dart';
 import 'class_state.dart';
 
-class ClassListScreen extends StatelessWidget {
+class ClassListScreen extends StatefulWidget {
   const ClassListScreen({super.key});
+
+  @override
+  State<ClassListScreen> createState() => _ClassListScreenState();
+}
+
+class _ClassListScreenState extends State<ClassListScreen> {
+  UserEntity? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    getIt<LmsRepository>().getCurrentUser().then((u) {
+      if (mounted) setState(() => _currentUser = u);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +35,9 @@ class ClassListScreen extends StatelessWidget {
       create: (_) => ClassCubit(getIt())..loadClasses(),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Danh sách lớp học'),
+          title: const Text('Danh sách lớp học phần'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
         ),
         body: BlocBuilder<ClassCubit, ClassState>(
           builder: (context, state) {
@@ -39,7 +58,7 @@ class ClassListScreen extends StatelessWidget {
               return RefreshIndicator(
                 onRefresh: () => context.read<ClassCubit>().loadClasses(),
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   itemCount: classes.length,
                   itemBuilder: (context, index) {
                     final item = classes[index];
@@ -49,7 +68,10 @@ class ClassListScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => ClassDetailScreen(courseClass: item),
+                              builder: (_) => ClassDetailScreen(
+                                courseClass: item,
+                                currentUser: _currentUser ?? const UserEntity(id: 1, fullName: 'Demo', email: 'demo@edu.vn', role: 'STUDENT'),
+                              ),
                             ),
                           );
                         },
@@ -64,14 +86,14 @@ class ClassListScreen extends StatelessWidget {
                                   variant: AppBadgeVariant.primary,
                                 ),
                                 Text(
-                                  '${item.studentCount} sinh viên',
+                                  'Sĩ số: ${item.enrolledCount}/${item.maxStudents}',
                                   style: AppTextStyles.caption,
                                 ),
                               ],
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              item.courseName,
+                              item.courseTitle,
                               style: AppTextStyles.h3,
                             ),
                             const SizedBox(height: 6),
@@ -80,22 +102,24 @@ class ClassListScreen extends StatelessWidget {
                                 const Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'GV: ${item.teacherName}',
+                                  'GV: ${item.lecturerName ?? "Phân công sau"}',
                                   style: AppTextStyles.body2,
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
-                                const SizedBox(width: 4),
-                                Text(
-                                  item.scheduleText,
-                                  style: AppTextStyles.body2,
-                                ),
-                              ],
-                            ),
+                            if (item.scheduleText != null) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    item.scheduleText!,
+                                    style: AppTextStyles.body2,
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
