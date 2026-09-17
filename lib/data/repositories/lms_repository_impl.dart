@@ -318,9 +318,14 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Notifications
   @override
   Future<List<NotificationEntity>> getNotifications() async {
-    final res = await _dio.get(ApiEndpoints.notifications);
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final res = await _dio.get(ApiEndpoints.notifications);
+      final result = _unwrap(res);
+      final List list = result is Map ? (result['content'] ?? []) : (result is List ? result : []);
+      return list.map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override
@@ -339,23 +344,40 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   @override
   Future<void> markNotificationAsRead(int notificationId) async {
-    await _dio.put(ApiEndpoints.markNotificationRead(notificationId));
+    try {
+      await _dio.put(ApiEndpoints.markNotificationRead(notificationId));
+    } catch (_) {}
   }
 
   // AI Advisor
   @override
   Future<ChatMessageEntity> sendAiAdvisorMessage(String prompt) async {
-    final res = await _dio.post(ApiEndpoints.aiAdvisorChat, data: {
-      'prompt': prompt,
-    });
-    final result = _unwrap(res);
-    final responseText = result is Map ? (result['reply'] ?? result['response'] ?? 'Không có phản hồi từ AI') : result.toString();
-    return ChatMessageEntity(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      text: responseText,
-      isUser: false,
-      timestamp: DateTime.now(),
-    );
+    try {
+      final res = await _dio.post(ApiEndpoints.aiAdvisorChat, data: {
+        'prompt': prompt,
+        'question': prompt,
+      });
+      final result = _unwrap(res);
+      String responseText = 'Không có phản hồi từ AI';
+      if (result is Map) {
+        responseText = result['advice'] ?? result['response'] ?? result['reply'] ?? result['aiResponse'] ?? result.toString();
+      } else if (result != null) {
+        responseText = result.toString();
+      }
+      return ChatMessageEntity(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: responseText,
+        isUser: false,
+        timestamp: DateTime.now(),
+      );
+    } catch (e) {
+      return ChatMessageEntity(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: 'Cố vấn AI hiện đang bận hoặc quá tải. Vui lòng gửi lại câu hỏi sau ít phút!',
+        isUser: false,
+        timestamp: DateTime.now(),
+      );
+    }
   }
 
   // Tuition
