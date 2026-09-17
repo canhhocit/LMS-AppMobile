@@ -13,6 +13,18 @@ class AppColors {
   static const Color warning = Color(0xFFF59E0B); // Amber 500
   static const Color danger = Color(0xFFEF4444); // Rose 500
 
+  // Standard Semantic Colors
+  static const Color error = Color(0xFFEF4444); // Red / Rose
+  static const Color success = Color(0xFF10B981); // Green / Emerald
+  static const Color info = Color(0xFF0EA5E9); // Blue / Sky
+
+  // Gradients
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [primary, primaryLight],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   // Neutral Colors - Light Mode
   static const Color background = Color(0xFFF8FAFC); // Slate 50
   static const Color surface = Colors.white;
