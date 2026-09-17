@@ -5,7 +5,7 @@
    <uses-permission android:name="android.permission.INTERNET"/>
 
    <application
-        android:label="${applicationName}"
+        android:label="LearningHub"
         android:icon="@mipmap/ic_launcher"
         android:largeHeap="true"
         android:fullBackupOnly="false"
@@ -36,7 +36,7 @@
 
             <intent-filter android:autoVerify="true">
                 <data
-                    android:host="${host}"
+                    android:host="learninghub.edu.vn"
                     android:pathPrefix="/web/reset-password"
                     android:scheme="https" />
                 <action android:name="android.intent.action.VIEW" />
@@ -50,8 +50,5 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- <meta-data
-            android:name="com.secret.sdk"
-            android:value="${apiKey}" /> -->
     </application>
 </manifest>
