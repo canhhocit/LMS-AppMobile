@@ -98,6 +98,14 @@ class HomeScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                          Image.asset(
+                            'assets/images/logo.png',
+                            height: 38,
+                            width: 38,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          ),
+                          const SizedBox(width: 8),
                           Container(
                             decoration: BoxDecoration(
                               color: AppColors.surface,
