@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
+import '../../core/security/biometric_service.dart';
 import '../main_tab/main_tab_screen.dart';
 import 'login_cubit.dart';
 import 'login_state.dart';
@@ -166,6 +167,36 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _passwordController.text,
                                 );
                           },
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final biometricService = BiometricService();
+                            final isAvailable = await biometricService.isBiometricAvailable();
+                            if (!isAvailable) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Thiết bị chưa cài đặt hoặc không hỗ trợ sinh trắc học!'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                            final authenticated = await biometricService.authenticateWithBiometrics();
+                            if (authenticated && context.mounted) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => const MainTabScreen()),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 24),
+                          label: const Text('Đăng nhập Vân tay / FaceID', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 48),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Center(

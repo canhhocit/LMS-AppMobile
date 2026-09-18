@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../domain/entities/attendance_entity.dart';
 import '../../domain/repositories/lms_repository.dart';
+import 'qr_scanner_dialog.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -70,7 +71,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
               ),
               const SizedBox(height: 16),
-              const Text('Nhập mã OTP (6 chữ số) từ Giảng viên:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final scannedOtp = await showDialog<String>(
+                    context: context,
+                    builder: (_) => const QrScannerDialog(),
+                  );
+                  if (scannedOtp != null && scannedOtp.isNotEmpty) {
+                    otpController.text = scannedOtp;
+                    setDialogState(() {});
+                  }
+                },
+                icon: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
+                label: const Text('Quét mã QR bằng Camera'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text('Hoặc nhập mã OTP (6 chữ số) từ Giảng viên:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 6),
               TextField(
                 controller: otpController,

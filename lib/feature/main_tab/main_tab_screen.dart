@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/offline_banner.dart';
 import '../classes/class_list_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
@@ -16,6 +19,27 @@ class MainTabScreen extends StatefulWidget {
 
 class _MainTabScreenState extends State<MainTabScreen> {
   int _currentIndex = 0;
+  bool _isOffline = false;
+  late StreamSubscription<List<ConnectivityResult>> _connectivitySub;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
+      final isDisconnected = results.contains(ConnectivityResult.none) || results.isEmpty;
+      if (mounted) {
+        setState(() {
+          _isOffline = isDisconnected;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySub.cancel();
+    super.dispose();
+  }
 
   void _onTabTapped(int index) {
     setState(() {
@@ -35,9 +59,18 @@ class _MainTabScreenState extends State<MainTabScreen> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex < pages.length ? _currentIndex : 0,
-        children: pages,
+      body: SafeArea(
+        child: Column(
+          children: [
+            OfflineBanner(isOffline: _isOffline),
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex < pages.length ? _currentIndex : 0,
+                children: pages,
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex > 4 ? 0 : _currentIndex,

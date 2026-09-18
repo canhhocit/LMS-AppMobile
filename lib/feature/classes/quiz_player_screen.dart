@@ -160,8 +160,10 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> {
     final isLastQ = _currentIndex == totalQ - 1;
     final isWarningTime = _remainingSeconds < 120;
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
         final shouldLeave = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -177,7 +179,9 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> {
             ],
           ),
         );
-        return shouldLeave ?? false;
+        if (shouldLeave == true && mounted) {
+          Navigator.of(context).pop();
+        }
       },
       child: Scaffold(
         appBar: AppBar(

@@ -8,7 +8,6 @@ import '../../core/widgets/app_avatar.dart';
 import '../../core/widgets/app_badge.dart';
 import '../../core/widgets/app_card.dart';
 import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/lms_repository.dart';
 import '../ai_advisor/ai_advisor_screen.dart';
 import '../attendance/attendance_screen.dart';
 import '../classes/class_detail_screen.dart';
