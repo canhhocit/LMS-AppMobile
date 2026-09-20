@@ -14,6 +14,7 @@ import '../attendance/attendance_screen.dart';
 import '../classes/class_detail_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../registration/registration_screen.dart';
+import '../tuition/tuition_screen.dart';
 import 'home_cubit.dart';
 import 'home_state.dart';
 
@@ -166,7 +167,12 @@ class HomeScreen extends StatelessWidget {
                             icon: Icons.account_balance_wallet_outlined,
                             label: 'Học phí',
                             color: const Color(0xFFF59E0B),
-                            onTap: () => onNavigateTab?.call(4),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const TuitionScreen()),
+                              );
+                            },
                           ),
                         ],
                       ),

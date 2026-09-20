@@ -11,6 +11,7 @@ import '../../core/widgets/app_text_field.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../auth/login_screen.dart';
+import '../tuition/tuition_screen.dart';
 import '../../app.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -703,8 +704,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Security Settings
-            Text('Bảo mật & Tài khoản', style: AppTextStyles.h3),
+            // Security & Services Settings
+            Text('Dịch vụ & Bảo mật', style: AppTextStyles.h3),
+            const SizedBox(height: 12),
+            AppCard(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TuitionScreen()),
+                );
+              },
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFF59E0B)),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Tra cứu Học phí & Công nợ', style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 2),
+                        Text('Xem lịch sử nộp học phí và tổng dư nợ', style: AppTextStyles.caption),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                ],
+              ),
+            ),
             const SizedBox(height: 12),
             AppCard(
               onTap: _showChangePasswordDialog,
