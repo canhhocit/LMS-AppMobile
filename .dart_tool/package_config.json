@@ -381,7 +381,7 @@
     },
     {
       "name": "mobile_scanner",
-      "rootUri": "file:///C:/Users/Canh/AppData/Local/Pub/Cache/hosted/pub.dev/mobile_scanner-6.0.11",
+      "rootUri": "file:///C:/Users/Canh/AppData/Local/Pub/Cache/hosted/pub.dev/mobile_scanner-5.2.3",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -740,7 +740,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2026-09-18T09:42:53.543903Z",
+  "generated": "2026-09-20T03:15:57.736815Z",
   "generator": "pub",
   "generatorVersion": "3.5.3",
   "flutterRoot": "file:///D:/flutter",
