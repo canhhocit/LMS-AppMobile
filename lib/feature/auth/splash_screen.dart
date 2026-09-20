@@ -5,6 +5,8 @@ import '../../domain/repositories/auth_repository.dart';
 import '../main_tab/main_tab_screen.dart';
 import 'login_screen.dart';
 
+import '../../core/widgets/app_education_logo.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -52,27 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Image.asset(
-                'assets/images/logo.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(Icons.school_rounded, size: 60, color: AppColors.primary),
-              ),
-            ),
+            const AppEducationLogo(size: 100),
             const SizedBox(height: 24),
             const Text(
               'LearningHub LMS',

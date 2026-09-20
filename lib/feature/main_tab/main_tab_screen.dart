@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/offline_banner.dart';
 import '../classes/class_list_screen.dart';
 import '../home/home_screen.dart';
+import '../ai_advisor/ai_advisor_screen.dart';
 import '../profile/profile_screen.dart';
 import '../schedule/schedule_screen.dart';
 import '../transcript/transcript_screen.dart';
@@ -71,6 +72,18 @@ class _MainTabScreenState extends State<MainTabScreen> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AiAdvisorScreen()),
+          );
+        },
+        elevation: 4,
+        backgroundColor: const Color(0xFF6366F1),
+        icon: const Icon(Icons.smart_toy_rounded, color: Colors.white),
+        label: const Text('Hỏi AI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex > 4 ? 0 : _currentIndex,

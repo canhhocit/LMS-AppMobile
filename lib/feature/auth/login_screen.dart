@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
+import '../../core/widgets/app_education_logo.dart';
 import '../../core/security/biometric_service.dart';
 import '../main_tab/main_tab_screen.dart';
 import 'login_cubit.dart';
@@ -67,31 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.25),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 16,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            height: 72,
-                            width: 72,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.school_rounded,
-                              size: 56,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+                        const AppEducationLogo(size: 84),
                         const SizedBox(height: 12),
                         Text(
                           'LearningHub Mobile',

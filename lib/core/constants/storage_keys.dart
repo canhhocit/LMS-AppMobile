@@ -10,4 +10,10 @@ class StorageKeys {
   static const String cacheTuition = 'cache_student_tuition';
   static const String cacheNotifications = 'cache_student_notifications';
   static const String cacheAttendance = 'cache_student_attendance';
+  // Personalization Keys
+  static const String aiPersona = 'ai_persona';
+  static const String aiStyle = 'ai_style';
+  static const String showAiFloatingButton = 'show_ai_floating_button';
+  static const String avatarTheme = 'avatar_theme';
 }
+

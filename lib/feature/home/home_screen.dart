@@ -7,6 +7,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/app_avatar.dart';
 import '../../core/widgets/app_badge.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/app_education_logo.dart';
 import '../../domain/entities/user_entity.dart';
 import '../ai_advisor/ai_advisor_screen.dart';
 import '../attendance/attendance_screen.dart';
@@ -95,13 +96,7 @@ class HomeScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          Image.asset(
-                            'assets/images/logo.png',
-                            height: 38,
-                            width: 38,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                          ),
+                          const AppEducationLogo(size: 38),
                           const SizedBox(width: 8),
                           Container(
                             decoration: BoxDecoration(
