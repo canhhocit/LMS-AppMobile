@@ -9,6 +9,7 @@ import '../../domain/entities/schedule_entity.dart';
 import '../../domain/entities/tuition_entity.dart';
 import '../../domain/repositories/student_repository.dart';
 import '../remote/dtos/student_dtos.dart';
+import '../mappers/student_mapper.dart';
 import '../session/session_manager.dart';
 
 class StudentRepositoryImpl implements StudentRepository {
