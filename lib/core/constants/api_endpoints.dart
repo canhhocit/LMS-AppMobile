@@ -1,6 +1,8 @@
 class ApiEndpoints {
-  // Adjust base URL according to host machine (10.0.2.2 for Android emulator, 192.168.x.x for physical device, localhost for iOS simulator)
-  static const String baseUrl = 'http://192.168.0.103:8080/api/v1';
+  // Render Production Backend URL for Students
+  static const String baseUrl = 'https://learninghub-6jdb.onrender.com/api/v1';
+  // Fallback / Local development URL option:
+  // static const String baseUrl = 'http://10.0.2.2:8080/api/v1';
 
   // Auth
   static const String login = '/auth/login';

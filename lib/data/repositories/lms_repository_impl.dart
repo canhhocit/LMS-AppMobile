@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 
 import '../../core/constants/api_endpoints.dart';
+import '../../core/constants/storage_keys.dart';
 import '../../core/network/dio_client.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/entities/class_entity.dart';
@@ -259,9 +260,20 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Attendance
   @override
   Future<List<StudentAttendanceSummary>> getStudentAttendanceSummary() async {
-    final res = await _dio.get(ApiEndpoints.studentAttendance);
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => StudentAttendanceSummary.fromJson(e as Map<String, dynamic>)).toList();
+    const cacheKey = StorageKeys.cacheAttendance;
+    try {
+      final res = await _dio.get(ApiEndpoints.studentAttendance);
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      await sessionManager.cacheData(cacheKey, jsonEncode(list));
+      return list.map((e) => StudentAttendanceSummary.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      final cachedStr = sessionManager.getCachedData(cacheKey);
+      if (cachedStr != null && cachedStr.isNotEmpty) {
+        final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
+        return list.map((e) => StudentAttendanceSummary.fromJson(e as Map<String, dynamic>)).toList();
+      }
+      return [];
+    }
   }
 
   @override
@@ -295,9 +307,20 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Gradebook / Transcript
   @override
   Future<List<GradeEntity>> getStudentGrades() async {
-    final res = await _dio.get(ApiEndpoints.studentGrades);
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => GradeEntity.fromJson(e as Map<String, dynamic>)).toList();
+    const cacheKey = StorageKeys.cacheGrades;
+    try {
+      final res = await _dio.get(ApiEndpoints.studentGrades);
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      await sessionManager.cacheData(cacheKey, jsonEncode(list));
+      return list.map((e) => GradeEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      final cachedStr = sessionManager.getCachedData(cacheKey);
+      if (cachedStr != null && cachedStr.isNotEmpty) {
+        final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
+        return list.map((e) => GradeEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
+      return [];
+    }
   }
 
   @override
@@ -353,12 +376,19 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Notifications
   @override
   Future<List<NotificationEntity>> getNotifications() async {
+    const cacheKey = StorageKeys.cacheNotifications;
     try {
       final res = await _dio.get(ApiEndpoints.notifications);
       final result = _unwrap(res);
       final List list = result is Map ? (result['content'] ?? []) : (result is List ? result : []);
+      await sessionManager.cacheData(cacheKey, jsonEncode(list));
       return list.map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
+      final cachedStr = sessionManager.getCachedData(cacheKey);
+      if (cachedStr != null && cachedStr.isNotEmpty) {
+        final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
+        return list.map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
       return [];
     }
   }
@@ -418,9 +448,20 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Tuition
   @override
   Future<List<TuitionItemEntity>> getTuitionInvoices() async {
-    final res = await _dio.get(ApiEndpoints.studentTuition);
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => TuitionItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+    const cacheKey = StorageKeys.cacheTuition;
+    try {
+      final res = await _dio.get(ApiEndpoints.studentTuition);
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      await sessionManager.cacheData(cacheKey, jsonEncode(list));
+      return list.map((e) => TuitionItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      final cachedStr = sessionManager.getCachedData(cacheKey);
+      if (cachedStr != null && cachedStr.isNotEmpty) {
+        final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
+        return list.map((e) => TuitionItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+      }
+      return [];
+    }
   }
 
   @override
