@@ -60,20 +60,25 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   @override
   Future<UserEntity?> getCurrentUser() async {
-    final jsonStr = sessionManager.getUserJson();
-    if (jsonStr != null && jsonStr.isNotEmpty) {
-      try {
-        return UserEntity.fromJson(jsonDecode(jsonStr) as Map<String, dynamic>);
-      } catch (_) {}
-    }
     final token = await sessionManager.getToken();
     if (token != null && token.isNotEmpty) {
       try {
         final res = await _dio.get(ApiEndpoints.me);
         final result = _unwrap(res);
-        final user = UserEntity.fromJson(result as Map<String, dynamic>);
-        await sessionManager.saveUserJson(jsonEncode(user.toJson()));
-        return user;
+        if (result is Map<String, dynamic>) {
+          final user = UserEntity.fromJson(result);
+          await sessionManager.saveUserJson(jsonEncode(user.toJson()));
+          return user;
+        }
+      } catch (_) {
+        // If network request fails (e.g. offline), fall through to cached user json
+      }
+    }
+
+    final jsonStr = sessionManager.getUserJson();
+    if (jsonStr != null && jsonStr.isNotEmpty) {
+      try {
+        return UserEntity.fromJson(jsonDecode(jsonStr) as Map<String, dynamic>);
       } catch (_) {}
     }
     return null;

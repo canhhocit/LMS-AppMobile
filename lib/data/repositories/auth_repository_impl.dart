@@ -62,20 +62,25 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserEntity?> getCurrentUser() async {
+    final token = await sessionManager.getToken();
+    if (token != null && token.isNotEmpty) {
+      try {
+        final res = await dioClient.dio.get(ApiEndpoints.me);
+        final rawData = res.data;
+        final data = rawData is Map<String, dynamic> ? (rawData['data'] ?? rawData) : rawData;
+        if (data is Map<String, dynamic>) {
+          final user = UserEntity.fromJson(data);
+          await sessionManager.saveUserJson(jsonEncode(user.toJson()));
+          return user;
+        }
+      } catch (_) {}
+    }
+
     final jsonStr = sessionManager.getUserJson();
     if (jsonStr == null || jsonStr.isEmpty) return null;
     try {
       final Map<String, dynamic> map = jsonDecode(jsonStr);
-      return UserEntity(
-        id: map['id'] ?? 1,
-        fullName: map['fullName'] ?? '',
-        email: map['email'] ?? map['username'] ?? '',
-        role: map['role'] ?? 'STUDENT',
-        studentCode: map['studentCode'],
-        faculty: map['facultyName'] ?? map['faculty'],
-        curriculumName: map['curriculumName'],
-        adminClassName: map['adminClassName'],
-      );
+      return UserEntity.fromJson(map);
     } catch (_) {
       return null;
     }
