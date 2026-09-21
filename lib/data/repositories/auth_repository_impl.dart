@@ -33,18 +33,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       final entity = dto.toEntity();
-      final userJson = jsonEncode({
-        'id': entity.id,
-        'username': entity.username,
-        'fullName': entity.fullName,
-        'email': entity.email,
-        'role': entity.role,
-        'studentCode': entity.studentCode,
-        'faculty': entity.faculty,
-        'curriculumName': entity.curriculumName,
-        'adminClassName': entity.adminClassName,
-      });
-      await sessionManager.saveUserJson(userJson);
+      await sessionManager.saveUserJson(jsonEncode(entity.toJson()));
 
       return entity;
     } on DioException catch (e) {

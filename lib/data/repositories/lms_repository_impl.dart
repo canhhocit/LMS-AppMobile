@@ -160,6 +160,18 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     return getTuitionInvoices();
   }
 
+  @override
+  Future<PayOSPaymentEntity> createPayOSPayment(int invoiceId) async {
+    final res = await _dio.post(ApiEndpoints.payOSCreatePayment(invoiceId));
+    final data = _unwrap(res) as Map<String, dynamic>;
+    return PayOSPaymentEntity.fromJson(data);
+  }
+
+  @override
+  Future<void> verifyPayOSPayment(int invoiceId) async {
+    await _dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
+  }
+
   // Chapter & Lessons
   @override
   Future<List<ChapterEntity>> getClassChapters(int classId) async {

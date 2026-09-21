@@ -1,0 +1,72 @@
+name: Build & Release Flutter App
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'app-v*'
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Release APK & Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🚀 Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: 🛠️ Build Android Release APK
+        run: flutter build apk --release
+
+      - name: 🏷️ Determine Release Tag Name
+        id: release_name
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "TAG_NAME=${github.ref_name}" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=v1.0.$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
+          fi
+
+      - name: 🚀 Upload APK & Create Release on GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: "DATN LMS Mobile App - ${{ env.TAG_NAME }}"
+          body: |
+            ## 🎉 DATN LMS Mobile App Release (${{ env.TAG_NAME }})
+            
+            Bản phát hành tự động cho ứng dụng di động DATN LMS AppMobile.
+            
+            ### 📱 Tải về APK:
+            - **Bản APK Cài Đặt**: `app-release.apk`
+            
+            ---
+            *Tạo tự động bởi GitHub Actions CI/CD pipeline.*
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

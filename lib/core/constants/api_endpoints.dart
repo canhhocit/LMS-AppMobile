@@ -1,8 +1,6 @@
 class ApiEndpoints {
   // Render Production Backend URL for Students
   static const String baseUrl = 'https://learninghub-6jdb.onrender.com/api/v1';
-  // Fallback / Local development URL option:
-  // static const String baseUrl = 'http://10.0.2.2:8080/api/v1';
 
   // Auth
   static const String login = '/auth/login';
@@ -68,6 +66,8 @@ class ApiEndpoints {
   // AI Learning Advisor
   static const String aiAdvisorChat = '/ai/advisor/ask';
 
-  // Tuition Payment
+  // Tuition Payment & PayOS
   static String payTuition(int invoiceId) => '/me/tuition/$invoiceId/pay';
+  static String payOSCreatePayment(int invoiceId) => '/me/tuition/$invoiceId/payos-create-payment';
+  static String payOSVerifyPayment(int invoiceId) => '/me/tuition/$invoiceId/payos-verify';
 }

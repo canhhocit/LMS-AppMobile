@@ -4,14 +4,17 @@ import '../remote/dtos/auth_dtos.dart';
 extension LoginResponseDtoMapper on LoginResponseDto {
   UserEntity toEntity() {
     return UserEntity(
-      id: 1, // Default or parsed from JWT payload
+      id: id,
       fullName: fullName,
       email: email,
+      personalEmail: personalEmail,
       role: role,
       studentCode: studentCode,
+      lecturerCode: lecturerCode,
       faculty: facultyName,
       curriculumName: curriculumName,
       adminClassName: adminClassName,
+      avatarUrl: avatarUrl,
       token: token,
       refreshToken: refreshToken,
     );

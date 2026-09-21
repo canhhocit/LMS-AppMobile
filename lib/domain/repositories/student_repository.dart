@@ -8,4 +8,6 @@ abstract class StudentRepository {
   Future<List<ScheduleItemEntity>> getMySchedule();
   Future<List<GradeEntity>> getMyGrades();
   Future<List<TuitionItemEntity>> getMyTuition();
+  Future<PayOSPaymentEntity> createPayOSPayment(int invoiceId);
+  Future<void> verifyPayOSPayment(int invoiceId);
 }
