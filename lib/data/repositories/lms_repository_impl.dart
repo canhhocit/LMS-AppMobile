@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/constants/api_endpoints.dart';
 import '../../core/constants/storage_keys.dart';
@@ -435,8 +436,33 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   @override
   Future<ChatMessageEntity> sendAiAdvisorMessage(String prompt) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final aiName = prefs.getString(StorageKeys.aiName) ?? 'Hikari AI';
+      final toneStyle = prefs.getString(StorageKeys.toneStyle) ?? 'FRIENDLY';
+      final customPrompt = prefs.getString(StorageKeys.customPrompt) ?? 'Đóng vai Cố vấn Học tập 24/7, đưa ra câu trả lời ngắn gọn, tạo động lực học tập.';
+      final targetGoal = prefs.getString(StorageKeys.targetGoal) ?? '3.6';
+
+      final userJson = sessionManager.getUserJson();
+      UserEntity? user;
+      if (userJson != null && userJson.isNotEmpty) {
+        try {
+          user = UserEntity.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+        } catch (_) {}
+      }
+      final userRoleStr = user?.isLecturer == true ? 'GIẢNG VIÊN' : 'SINH VIÊN';
+      final userNameStr = user?.fullName ?? 'Người dùng';
+
+      final systemContext = '[CẤU HÌNH CÁ NHÂN HÓA TRỢ LÝ AI]\n'
+          '- Tên Trợ lý AI: $aiName\n'
+          '- Phong cách phản hồi (Tone of Voice): $toneStyle\n'
+          '- System Prompt chỉ dẫn cá nhân: $customPrompt\n'
+          '- Mục tiêu GPA / Định hướng người học ($userRoleStr - $userNameStr): $targetGoal\n'
+          'Hãy phản hồi người dùng ($userNameStr) theo đúng danh xưng, phong cách và chỉ dẫn hệ thống trên.';
+
+      final fullPrompt = '$systemContext\n\n[CÂU HỎI CỦA $userRoleStr $userNameStr]: $prompt';
+
       final res = await _dio.post(ApiEndpoints.aiAdvisorChat, data: {
-        'prompt': prompt,
+        'prompt': fullPrompt,
         'question': prompt,
       });
       final result = _unwrap(res);

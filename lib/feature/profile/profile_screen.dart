@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/storage_keys.dart';
 import '../../core/di/service_locator.dart';
@@ -25,16 +26,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   UserEntity? _user;
   bool _isLoading = true;
 
-  // Personalization settings state
-  String _aiPersona = 'friendly'; // 'friendly', 'fast', 'strict'
-  String _aiStyle = 'balanced'; // 'balanced', 'detailed', 'concise'
+  // Personalization settings state & controllers
+  late TextEditingController _aiNameCtrl;
+  late TextEditingController _customPromptCtrl;
+  late TextEditingController _targetGoalCtrl;
+  String _toneStyle = 'FRIENDLY'; // FRIENDLY, FORMAL, CONCISE, TUTOR
+  String _aiPersona = 'friendly';
+  String _aiStyle = 'balanced';
   bool _showFloatingAi = true;
-  String _avatarTheme = 'lucid_blue'; // 'lucid_blue', 'emerald', 'violet', 'gold', 'crimson'
+  String _avatarTheme = 'lucid_blue';
 
   @override
   void initState() {
     super.initState();
+    _aiNameCtrl = TextEditingController(text: 'Hikari AI');
+    _customPromptCtrl = TextEditingController(text: 'Đóng vai Cố vấn Học tập 24/7, đưa ra câu trả lời ngắn gọn, tạo động lực học tập.');
+    _targetGoalCtrl = TextEditingController(text: '3.6');
     _loadProfileAndSettings();
+  }
+
+  @override
+  void dispose() {
+    _aiNameCtrl.dispose();
+    _customPromptCtrl.dispose();
+    _targetGoalCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProfileAndSettings() async {
@@ -45,6 +61,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (mounted) {
       setState(() {
         _user = user;
+        _aiNameCtrl.text = prefs.getString(StorageKeys.aiName) ?? 'Hikari AI';
+        _toneStyle = prefs.getString(StorageKeys.toneStyle) ?? 'FRIENDLY';
+        _customPromptCtrl.text = prefs.getString(StorageKeys.customPrompt) ?? 'Đóng vai Cố vấn Học tập 24/7, đưa ra câu trả lời ngắn gọn, tạo động lực học tập.';
+        _targetGoalCtrl.text = prefs.getString(StorageKeys.targetGoal) ?? '3.6';
         _aiPersona = prefs.getString(StorageKeys.aiPersona) ?? 'friendly';
         _aiStyle = prefs.getString(StorageKeys.aiStyle) ?? 'balanced';
         _showFloatingAi = prefs.getBool(StorageKeys.showAiFloatingButton) ?? true;
@@ -56,10 +76,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _saveAiSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(StorageKeys.aiName, _aiNameCtrl.text.trim().isEmpty ? 'Hikari AI' : _aiNameCtrl.text.trim());
+    await prefs.setString(StorageKeys.toneStyle, _toneStyle);
+    await prefs.setString(StorageKeys.customPrompt, _customPromptCtrl.text.trim());
+    await prefs.setString(StorageKeys.targetGoal, _targetGoalCtrl.text.trim());
     await prefs.setString(StorageKeys.aiPersona, _aiPersona);
     await prefs.setString(StorageKeys.aiStyle, _aiStyle);
     await prefs.setBool(StorageKeys.showAiFloatingButton, _showFloatingAi);
     await prefs.setString(StorageKeys.avatarTheme, _avatarTheme);
+  }
+
+  Future<void> _handleExportChatHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyStr = prefs.getString(StorageKeys.aiChatHistory);
+    if (historyStr == null || historyStr.trim().isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chưa có lịch sử trò chuyện nào để xuất!'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (dialogCtx) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Xuất Lịch sử Trò chuyện AI (.json)'),
+            content: SingleChildScrollView(
+              child: SelectableText(
+                historyStr,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx),
+                child: const Text('Đóng'),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                icon: const Icon(Icons.copy, size: 16, color: Colors.white),
+                label: const Text('Sao chép JSON', style: TextStyle(color: Colors.white)),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: historyStr));
+                  Navigator.pop(dialogCtx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đã sao chép file JSON lịch sử chat vào Khay nhớ tạm!'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> _handleClearChatHistory() async {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Xác nhận xóa lịch sử'),
+          content: const Text('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện với Trợ lý AI không? Hành động này không thể hoàn tác.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove(StorageKeys.aiChatHistory);
+                if (mounted) {
+                  Navigator.pop(dialogCtx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đã xóa toàn bộ lịch sử trò chuyện với Trợ lý AI thành công!'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Xóa toàn bộ', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Color _getAvatarThemeColor() {
@@ -484,131 +599,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // AI Companion Personalization Section
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(Icons.psychology, color: AppColors.primary, size: 22),
-                const SizedBox(width: 8),
-                Text('Cá nhân hóa Trợ lý AI', style: AppTextStyles.h3),
+                Row(
+                  children: [
+                    const Icon(Icons.psychology, color: AppColors.primary, size: 22),
+                    const SizedBox(width: 8),
+                    Text('Cá nhân hóa Trợ lý AI', style: AppTextStyles.h3),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.purple.shade200),
+                  ),
+                  child: Text(
+                    'Live AI Persona',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.purple.shade700),
+                  ),
+                ),
               ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Tùy chỉnh tên trợ lý, chỉ dẫn hệ thống (System Prompt), mục tiêu GPA và văn phong phản hồi của AI theo đúng nhu cầu học tập của bạn.',
+              style: AppTextStyles.caption,
             ),
             const SizedBox(height: 12),
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Tính cách Trợ lý AI (Persona)', style: AppTextStyles.caption),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ChoiceChip(
-                        label: const Text('💙 Cố vấn Thân thiện'),
-                        selected: _aiPersona == 'friendly',
-                        selectedColor: AppColors.primary,
-                        labelStyle: TextStyle(
-                          color: _aiPersona == 'friendly' ? Colors.white : AppColors.textPrimary,
-                          fontWeight: _aiPersona == 'friendly' ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        onSelected: (val) {
-                          if (val) {
-                            setState(() => _aiPersona = 'friendly');
-                            _saveAiSettings();
-                          }
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text('⚡ Trợ lý Siêu tốc'),
-                        selected: _aiPersona == 'fast',
-                        selectedColor: AppColors.primary,
-                        labelStyle: TextStyle(
-                          color: _aiPersona == 'fast' ? Colors.white : AppColors.textPrimary,
-                          fontWeight: _aiPersona == 'fast' ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        onSelected: (val) {
-                          if (val) {
-                            setState(() => _aiPersona = 'fast');
-                            _saveAiSettings();
-                          }
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text('🎯 Giám sát Tiến độ'),
-                        selected: _aiPersona == 'strict',
-                        selectedColor: AppColors.primary,
-                        labelStyle: TextStyle(
-                          color: _aiPersona == 'strict' ? Colors.white : AppColors.textPrimary,
-                          fontWeight: _aiPersona == 'strict' ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        onSelected: (val) {
-                          if (val) {
-                            setState(() => _aiPersona = 'strict');
-                            _saveAiSettings();
-                          }
-                        },
-                      ),
-                    ],
+                  AppTextField(
+                    label: 'Tên Trợ lý AI hiển thị:',
+                    hint: 'Vd: Hikari AI, Jarvis...',
+                    controller: _aiNameCtrl,
+                    prefixIcon: Icons.smart_toy_outlined,
                   ),
-                  const Divider(height: 24),
+                  const SizedBox(height: 12),
 
-                  Text('Phong cách trả lời của AI', style: AppTextStyles.caption),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ChoiceChip(
-                          label: const Center(child: Text('Cân bằng')),
-                          selected: _aiStyle == 'balanced',
-                          selectedColor: AppColors.secondary,
-                          labelStyle: TextStyle(
-                            color: _aiStyle == 'balanced' ? Colors.white : AppColors.textPrimary,
-                            fontSize: 12,
-                          ),
-                          onSelected: (val) {
-                            if (val) {
-                              setState(() => _aiStyle = 'balanced');
-                              _saveAiSettings();
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: ChoiceChip(
-                          label: const Center(child: Text('Chi tiết')),
-                          selected: _aiStyle == 'detailed',
-                          selectedColor: AppColors.secondary,
-                          labelStyle: TextStyle(
-                            color: _aiStyle == 'detailed' ? Colors.white : AppColors.textPrimary,
-                            fontSize: 12,
-                          ),
-                          onSelected: (val) {
-                            if (val) {
-                              setState(() => _aiStyle = 'detailed');
-                              _saveAiSettings();
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: ChoiceChip(
-                          label: const Center(child: Text('Ngắn gọn')),
-                          selected: _aiStyle == 'concise',
-                          selectedColor: AppColors.secondary,
-                          labelStyle: TextStyle(
-                            color: _aiStyle == 'concise' ? Colors.white : AppColors.textPrimary,
-                            fontSize: 12,
-                          ),
-                          onSelected: (val) {
-                            if (val) {
-                              setState(() => _aiStyle = 'concise');
-                              _saveAiSettings();
-                            }
-                          },
-                        ),
-                      ),
+                  Text('Phong cách giao tiếp (Tone of Voice):', style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: _toneStyle,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'FRIENDLY', child: Text('💙 Thân thiện, gần gũi & Khích lệ')),
+                      DropdownMenuItem(value: 'FORMAL', child: Text('🎓 Trang trọng, Chuẩn mực Sư phạm')),
+                      DropdownMenuItem(value: 'CONCISE', child: Text('⚡ Ngắn gọn, Trực diện & Tập trung')),
+                      DropdownMenuItem(value: 'TUTOR', child: Text('📚 Tutor Học thuật & Giải thích Chi tiết')),
                     ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _toneStyle = val);
+                      }
+                    },
                   ),
+                  const SizedBox(height: 12),
+
+                  AppTextField(
+                    label: 'Chỉ dẫn cá nhân hóa System Prompt:',
+                    hint: 'Nhập yêu cầu riêng cho AI (Vd: Hãy nhắc tôi về deadline, luôn xưng thầy/em...)',
+                    controller: _customPromptCtrl,
+                    maxLines: 3,
+                    prefixIcon: Icons.description_outlined,
+                  ),
+                  const SizedBox(height: 12),
+
+                  AppTextField(
+                    label: 'Mục tiêu GPA / Định hướng:',
+                    hint: 'Vd: 3.6 / 4.0 hoặc Thủ khoa đầu ra',
+                    controller: _targetGoalCtrl,
+                    prefixIcon: Icons.center_focus_strong,
+                  ),
+                  const SizedBox(height: 16),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.save_rounded, color: Colors.white, size: 18),
+                      label: const Text(
+                        'Lưu Cấu hình Cá nhân hóa AI',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      onPressed: () async {
+                        await _saveAiSettings();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Đã lưu cấu hình cá nhân hóa cho Trợ lý AI thành công!'),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+
                   const Divider(height: 24),
 
                   Row(
@@ -630,6 +727,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           setState(() => _showFloatingAi = val);
                           _saveAiSettings();
                         },
+                      ),
+                    ],
+                  ),
+
+                  const Divider(height: 24),
+
+                  Text('Quản lý Lịch sử trò chuyện AI:', style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.primary),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          icon: const Icon(Icons.download_rounded, size: 16, color: AppColors.primary),
+                          label: const Text('Xuất Lịch sử (.json)', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold)),
+                          onPressed: _handleExportChatHistory,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.error),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.error),
+                          label: const Text('Xóa Lịch sử Chat AI', style: TextStyle(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.bold)),
+                          onPressed: _handleClearChatHistory,
+                        ),
                       ),
                     ],
                   ),

@@ -12,6 +12,7 @@ class AppTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final ValueChanged<String>? onChanged;
   final FormFieldValidator<String>? validator;
+  final int maxLines;
 
   const AppTextField({
     super.key,
@@ -24,6 +25,7 @@ class AppTextField extends StatefulWidget {
     this.prefixIcon,
     this.onChanged,
     this.validator,
+    this.maxLines = 1,
   });
 
   @override
@@ -53,6 +55,7 @@ class _AppTextFieldState extends State<AppTextField> {
           controller: widget.controller,
           obscureText: widget.isPassword ? _obscureText : false,
           keyboardType: widget.keyboardType,
+          maxLines: widget.isPassword ? 1 : widget.maxLines,
           onChanged: widget.onChanged,
           validator: widget.validator,
           style: AppTextStyles.body1,

@@ -13,6 +13,11 @@ class StorageKeys {
   // Personalization Keys
   static const String aiPersona = 'ai_persona';
   static const String aiStyle = 'ai_style';
+  static const String aiName = 'ai_name';
+  static const String toneStyle = 'tone_style';
+  static const String customPrompt = 'custom_prompt';
+  static const String targetGoal = 'target_goal';
+  static const String aiChatHistory = 'ai_chat_history';
   static const String showAiFloatingButton = 'show_ai_floating_button';
   static const String avatarTheme = 'avatar_theme';
 }
