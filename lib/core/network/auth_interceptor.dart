@@ -3,8 +3,9 @@ import '../../data/session/session_manager.dart';
 
 class AuthInterceptor extends Interceptor {
   final SessionManager sessionManager;
+  final void Function()? onUnauthorized;
 
-  AuthInterceptor(this.sessionManager);
+  AuthInterceptor(this.sessionManager, {this.onUnauthorized});
 
   @override
   Future<void> onRequest(
@@ -24,6 +25,7 @@ class AuthInterceptor extends Interceptor {
     if (err.response?.statusCode == 401) {
       // Handle token expiration / unauthorized
       sessionManager.clearSession();
+      onUnauthorized?.call();
     }
     return handler.next(err);
   }
