@@ -81,7 +81,7 @@ class HomeScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  isLecturer ? 'Xin chào Giảng viên 👨‍🏫' : 'Xin chào Sinh viên 👋',
+                                  isLecturer ? 'Xin chào Giảng viên' : 'Xin chào Sinh viên',
                                   style: AppTextStyles.caption.copyWith(fontSize: 12),
                                 ),
                                 Text(

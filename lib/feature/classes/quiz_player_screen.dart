@@ -117,7 +117,7 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> {
               const SizedBox(height: 8),
               Chip(
                 label: Text(
-                  attempt.score >= 5.0 ? '🎉 ĐẠT BÀI KIỂM TRA' : '⚠️ CHƯA ĐẠT',
+                  attempt.score >= 5.0 ? 'ĐẠT BÀI KIỂM TRA' : 'CHƯA ĐẠT',
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                 ),
                 backgroundColor: attempt.score >= 5.0 ? AppColors.success : Colors.red,

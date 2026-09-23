@@ -649,10 +649,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     items: const [
-                      DropdownMenuItem(value: 'FRIENDLY', child: Text('💙 Thân thiện, gần gũi & Khích lệ')),
-                      DropdownMenuItem(value: 'FORMAL', child: Text('🎓 Trang trọng, Chuẩn mực Sư phạm')),
-                      DropdownMenuItem(value: 'CONCISE', child: Text('⚡ Ngắn gọn, Trực diện & Tập trung')),
-                      DropdownMenuItem(value: 'TUTOR', child: Text('📚 Tutor Học thuật & Giải thích Chi tiết')),
+                      DropdownMenuItem(value: 'FRIENDLY', child: Text('Thân thiện, gần gũi & Khích lệ')),
+                      DropdownMenuItem(value: 'FORMAL', child: Text('Trang trọng, Chuẩn mực Sư phạm')),
+                      DropdownMenuItem(value: 'CONCISE', child: Text('Ngắn gọn, Trực diện & Tập trung')),
+                      DropdownMenuItem(value: 'TUTOR', child: Text('Tutor Học thuật & Giải thích Chi tiết')),
                     ],
                     onChanged: (val) {
                       if (val != null) {

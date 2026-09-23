@@ -134,12 +134,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         Navigator.pop(ctx);
                         if (ok) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('✅ Điểm danh QR thành công!'), backgroundColor: AppColors.success),
+                            const SnackBar(content: Text('Điểm danh QR thành công!'), backgroundColor: AppColors.success),
                           );
                           _loadAttendance();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('❌ Mã OTP không hợp lệ hoặc đã hết hạn!'), backgroundColor: Colors.red),
+                            const SnackBar(content: Text('Mã OTP không hợp lệ hoặc đã hết hạn!'), backgroundColor: Colors.red),
                           );
                         }
                       }
@@ -212,7 +212,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   const Padding(
                                     padding: EdgeInsets.only(top: 8),
                                     child: Text(
-                                      '⚠️ Cảnh báo: Tỷ lệ vắng mặt đã vượt quá 20%! Nguy cơ bị cấm thi.',
+                                      'Cảnh báo: Tỷ lệ vắng mặt đã vượt quá 20%! Nguy cơ bị cấm thi.',
                                       style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
                                     ),
                                   ),

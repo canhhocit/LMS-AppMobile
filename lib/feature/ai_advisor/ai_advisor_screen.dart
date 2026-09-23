@@ -280,10 +280,10 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _buildPromptChip('🎯 Lộ trình cải thiện GPA?'),
-                      _buildPromptChip('📚 Kinh nghiệm học môn khó?'),
-                      _buildPromptChip('⚠️ Kiểm tra nguy cơ cảnh báo?'),
-                      _buildPromptChip('⏰ Bí quyết quản lý thời gian?'),
+                      _buildPromptChip('Lộ trình cải thiện GPA?'),
+                      _buildPromptChip('Kinh nghiệm học môn khó?'),
+                      _buildPromptChip('Kiểm tra nguy cơ học tập?'),
+                      _buildPromptChip('Bí quyết quản lý thời gian?'),
                     ],
                   ),
                 ),
