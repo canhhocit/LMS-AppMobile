@@ -11,6 +11,8 @@ import '../../core/widgets/app_empty_state.dart';
 import '../../core/widgets/app_error_state.dart';
 import '../../core/widgets/app_skeleton.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../core/widgets/academic_warning_banner.dart';
+import '../ai_advisor/ai_advisor_screen.dart';
 import '../attendance/attendance_screen.dart';
 import '../classes/class_detail_screen.dart';
 import '../notifications/notifications_screen.dart';
@@ -139,6 +141,27 @@ class HomeScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 20),
+
+                      // Academic Warning Banner for Students
+                      if (!isLecturer && user != null)
+                        AcademicWarningBanner(
+                          studentName: user.fullName,
+                          studentCode: user.studentCode,
+                          debtCredits: 0,
+                          gpa: null,
+                          onRegisterRemediation: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const RegistrationScreen()),
+                            );
+                          },
+                          onAskAiAdvisor: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AiAdvisorScreen()),
+                            );
+                          },
+                        ),
 
                       // Today's Schedule Card (Highest Priority)
                       Row(

@@ -44,6 +44,9 @@ class AvailableClassEntity {
   final int maxStudents;
   final int currentEnrolled;
   final bool isRegistered;
+  final int? dayOfWeek;
+  final int? startPeriod;
+  final int? endPeriod;
 
   const AvailableClassEntity({
     required this.id,
@@ -56,6 +59,9 @@ class AvailableClassEntity {
     required this.maxStudents,
     required this.currentEnrolled,
     this.isRegistered = false,
+    this.dayOfWeek,
+    this.startPeriod,
+    this.endPeriod,
   });
 
   factory AvailableClassEntity.fromJson(Map<String, dynamic> json) {
@@ -74,6 +80,9 @@ class AvailableClassEntity {
       maxStudents: json['maxStudents'] ?? json['max_students'] ?? 50,
       currentEnrolled: count is int ? count : int.tryParse(count.toString()) ?? 0,
       isRegistered: json['isRegistered'] ?? json['is_registered'] ?? false,
+      dayOfWeek: json['dayOfWeek'] ?? json['day_of_week'],
+      startPeriod: json['startPeriod'] ?? json['start_period'],
+      endPeriod: json['endPeriod'] ?? json['end_period'],
     );
   }
 }

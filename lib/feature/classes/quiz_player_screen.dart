@@ -19,7 +19,7 @@ class QuizPlayerScreen extends StatefulWidget {
   State<QuizPlayerScreen> createState() => _QuizPlayerScreenState();
 }
 
-class _QuizPlayerScreenState extends State<QuizPlayerScreen> {
+class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBindingObserver {
   final LmsRepository _repo = getIt<LmsRepository>();
 
   int _currentIndex = 0;
@@ -28,12 +28,39 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> {
   late Timer _timer;
   late int _remainingSeconds;
   bool _isSubmitting = false;
+  int _warningCount = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _remainingSeconds = widget.quiz.durationMinutes * 60;
     _startTimer();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (!_isSubmitting) {
+        _warningCount++;
+        if (_warningCount >= 3) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('🚨 CẢNH BÁO GIAN LẬN: Bạn đã rời ứng dụng quá 3 lần. Hệ thống tự động nộp bài!'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          _autoSubmit();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('⚠️ CẢNH BÁO VI PHẠM TƯƠNG TÁC ($_warningCount/3): Không được thoát ứng dụng hoặc chuyển tab trong khi làm bài thi!'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    }
   }
 
   void _startTimer() {
@@ -51,6 +78,7 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer.cancel();
     super.dispose();
   }

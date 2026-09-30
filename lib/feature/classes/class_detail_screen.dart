@@ -46,7 +46,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    final tabCount = widget.currentUser.isLecturer ? 6 : 5;
+    final tabCount = widget.currentUser.isLecturer ? 7 : 6;
     _tabController = TabController(length: tabCount, vsync: this);
     _loadAllClassData();
   }
@@ -95,6 +95,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
     final isLecturer = widget.currentUser.isLecturer;
     final tabs = [
       const Tab(text: 'Bài giảng'),
+      const Tab(text: 'Kho tài liệu'),
       const Tab(text: 'Bài tập'),
       const Tab(text: 'Kiểm tra'),
       const Tab(text: 'Diễn đàn'),
@@ -127,6 +128,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
               controller: _tabController,
               children: [
                 _buildLessonsTab(),
+                _buildDocumentHubTab(),
                 _buildAssignmentsTab(),
                 _buildQuizzesTab(),
                 _buildForumTab(),
@@ -309,6 +311,79 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
           ),
         ],
       ),
+    );
+  }
+
+  // --- TAB 1.5: KHO TÀI LIỆU ---
+  Widget _buildDocumentHubTab() {
+    final docs = <Map<String, dynamic>>[];
+    for (final ch in _chapters) {
+      for (final l in ch.lessons) {
+        if (l.attachmentUrl != null && l.attachmentUrl!.isNotEmpty) {
+          docs.add({
+            'chapterTitle': ch.title,
+            'lessonTitle': l.title,
+            'fileName': l.attachmentName ?? 'Tài liệu bài học',
+            'fileUrl': l.attachmentUrl!,
+          });
+        }
+      }
+    }
+
+    if (docs.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.folder_open_outlined, size: 56, color: Colors.grey),
+            SizedBox(height: 12),
+            Text('Chưa có tài liệu đính kèm nào trong học phần này', style: TextStyle(color: Colors.grey, fontSize: 13)),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: docs.length,
+      itemBuilder: (context, idx) {
+        final doc = docs[idx];
+        final fileName = doc['fileName'] as String;
+        final fileUrl = doc['fileUrl'] as String;
+
+        IconData iconData = Icons.insert_drive_file_outlined;
+        if (fileName.contains('.doc') || fileName.contains('.docx')) {
+          iconData = Icons.description;
+        } else if (fileName.contains('.pdf')) {
+          iconData = Icons.picture_as_pdf;
+        } else if (fileName.contains('.zip') || fileName.contains('.rar')) {
+          iconData = Icons.folder_zip;
+        } else if (_isImageUrl(fileUrl)) {
+          iconData = Icons.image;
+        }
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: AppColors.primaryLight,
+              child: Icon(iconData, color: AppColors.primary, size: 22),
+            ),
+            title: Text(fileName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            subtitle: Text('${doc['chapterTitle']} • ${doc['lessonTitle']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            trailing: IconButton(
+              icon: const Icon(Icons.download_rounded, color: AppColors.primary),
+              tooltip: 'Tải xuống / Mở tài liệu',
+              onPressed: () async {
+                final uri = Uri.parse(fileUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
