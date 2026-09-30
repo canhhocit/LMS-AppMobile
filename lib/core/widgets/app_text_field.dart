@@ -37,6 +37,9 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = AppColors.textPrimaryColor(context);
+    final mutedColor = AppColors.textMutedColor(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -46,7 +49,7 @@ class _AppTextFieldState extends State<AppTextField> {
             widget.label!,
             style: AppTextStyles.body2.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: textColor,
             ),
           ),
           const SizedBox(height: 6),
@@ -58,18 +61,18 @@ class _AppTextFieldState extends State<AppTextField> {
           maxLines: widget.isPassword ? 1 : widget.maxLines,
           onChanged: widget.onChanged,
           validator: widget.validator,
-          style: AppTextStyles.body1,
+          style: AppTextStyles.body1.copyWith(color: textColor),
           decoration: InputDecoration(
             hintText: widget.hint,
             errorText: widget.errorText,
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, color: AppColors.textMuted, size: 20)
+                ? Icon(widget.prefixIcon, color: mutedColor, size: 20)
                 : null,
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.textMuted,
+                      color: mutedColor,
                       size: 20,
                     ),
                     onPressed: () {

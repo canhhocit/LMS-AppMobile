@@ -21,13 +21,17 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+    final defaultBg = AppColors.surfaceColor(context);
+    final defaultBorder = Border.all(color: AppColors.borderColor(context));
+
     final cardWidget = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.surface,
+        color: backgroundColor ?? defaultBg,
         borderRadius: AppRadius.borderMd,
-        border: border ?? Border.all(color: AppColors.border),
-        boxShadow: AppShadow.sm,
+        border: border ?? defaultBorder,
+        boxShadow: isDark ? [] : AppShadow.sm,
       ),
       child: child,
     );

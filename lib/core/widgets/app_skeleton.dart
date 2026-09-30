@@ -24,31 +24,41 @@ class AppSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColors.isDark(context);
+    final base = isDark ? const Color(0xFF1E293B) : Colors.grey.shade200;
+    final highlight = isDark ? const Color(0xFF334155) : Colors.grey.shade50;
+    final bg = isDark ? AppColors.darkSurface : AppColors.surface;
+
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade50,
+      baseColor: base,
+      highlightColor: highlight,
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: bg,
           borderRadius: borderRadius ?? AppRadius.borderMd,
         ),
       ),
     );
   }
 
-  static Widget cardLoader({double height = 100}) {
+  static Widget cardLoader({BuildContext? context, double height = 100}) {
+    final isDark = context != null ? AppColors.isDark(context) : false;
+    final base = isDark ? const Color(0xFF1E293B) : Colors.grey.shade200;
+    final highlight = isDark ? const Color(0xFF334155) : Colors.grey.shade50;
+    final bg = isDark ? AppColors.darkSurface : Colors.white;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Shimmer.fromColors(
-        baseColor: Colors.grey.shade200,
-        highlightColor: Colors.grey.shade50,
+        baseColor: base,
+        highlightColor: highlight,
         child: Container(
           width: double.infinity,
           height: height,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: bg,
             borderRadius: AppRadius.borderMd,
           ),
         ),
@@ -56,13 +66,13 @@ class AppSkeleton extends StatelessWidget {
     );
   }
 
-  static Widget listLoader({int count = 4, double height = 80}) {
+  static Widget listLoader({BuildContext? context, int count = 4, double height = 80}) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       itemCount: count,
-      itemBuilder: (_, __) => cardLoader(height: height),
+      itemBuilder: (_, __) => cardLoader(context: context, height: height),
     );
   }
 }
