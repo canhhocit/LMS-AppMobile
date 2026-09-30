@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/app_file_launcher.dart';
 import '../../core/widgets/app_video_player.dart';
 import '../../domain/entities/chapter_lesson_entity.dart';
 import '../../domain/entities/assignment_entity.dart';
@@ -225,11 +225,12 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
                     if (_activeLesson!.attachmentUrl != null && _activeLesson!.attachmentUrl!.isNotEmpty) ...[
                       const Divider(),
                       InkWell(
-                        onTap: () async {
-                          final uri = Uri.parse(_activeLesson!.attachmentUrl!);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
-                          }
+                        onTap: () {
+                          AppFileLauncher.openOrDownloadFile(
+                            context,
+                            _activeLesson!.attachmentUrl!,
+                            fileName: _activeLesson!.attachmentName,
+                          );
                         },
                         child: Container(
                           padding: const EdgeInsets.all(10),
@@ -374,11 +375,12 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
             trailing: IconButton(
               icon: const Icon(Icons.download_rounded, color: AppColors.primary),
               tooltip: 'Tải xuống / Mở tài liệu',
-              onPressed: () async {
-                final uri = Uri.parse(fileUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
+              onPressed: () {
+                AppFileLauncher.openOrDownloadFile(
+                  context,
+                  fileUrl,
+                  fileName: fileName,
+                );
               },
             ),
           ),
@@ -427,11 +429,8 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
               IconButton(
                 icon: const Icon(Icons.open_in_new, size: 18, color: AppColors.primary),
                 tooltip: 'Mở liên kết',
-                onPressed: () async {
-                  final uri = Uri.parse(url);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
+                onPressed: () {
+                  AppFileLauncher.openOrDownloadFile(context, url);
                 },
               ),
             ],

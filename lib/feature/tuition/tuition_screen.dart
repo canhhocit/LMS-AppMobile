@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../core/utils/app_file_launcher.dart';
 
 import '../../core/di/service_locator.dart';
 import '../../core/theme/app_colors.dart';
@@ -140,11 +140,8 @@ class _TuitionScreenState extends State<TuitionScreen> {
                     AppButton(
                       text: 'Mở trang thanh toán PayOS',
                       icon: Icons.open_in_new_rounded,
-                      onPressed: () async {
-                        final uri = Uri.parse(payOSData!.checkoutUrl);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
+                      onPressed: () {
+                        AppFileLauncher.openOrDownloadFile(context, payOSData!.checkoutUrl);
                       },
                     ),
                     const SizedBox(height: 10),
