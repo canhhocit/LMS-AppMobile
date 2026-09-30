@@ -297,6 +297,83 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
     );
   }
 
+  bool _isImageUrl(String url) {
+    final clean = url.toLowerCase();
+    return clean.endsWith('.png') ||
+        clean.endsWith('.jpg') ||
+        clean.endsWith('.jpeg') ||
+        clean.endsWith('.webp') ||
+        clean.endsWith('.gif') ||
+        clean.contains('/image/upload/') ||
+        clean.contains('imgur.com') ||
+        clean.contains('images.unsplash.com');
+  }
+
+  Widget _buildSubmissionPreview(String url) {
+    final isImg = _isImageUrl(url);
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(isImg ? Icons.image : Icons.link, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  url,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.open_in_new, size: 18, color: AppColors.primary),
+                tooltip: 'Mở liên kết',
+                onPressed: () async {
+                  final uri = Uri.parse(url);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+            ],
+          ),
+          if (isImg) ...[
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.network(
+                url,
+                height: 160,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  padding: const EdgeInsets.all(8),
+                  color: Colors.grey.shade200,
+                  child: const Row(
+                    children: [
+                      Icon(Icons.broken_image, color: Colors.grey),
+                      SizedBox(width: 6),
+                      Text('Không thể tải xem trước hình ảnh', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   // --- TAB 2: BÀI TẬP ---
   Widget _buildAssignmentsTab() {
     final isLecturer = widget.currentUser.isLecturer;
@@ -355,19 +432,29 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
                               children: [
                                 const Icon(Icons.check_circle, color: AppColors.success, size: 18),
                                 const SizedBox(width: 6),
-                                Expanded(child: Text('Đã nộp: ${sub.fileUrl}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+                                const Text('Trạng thái: Đã nộp bài', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.success)),
+                                const Spacer(),
                                 if (sub.score != null)
                                   Chip(
-                                    label: Text('Điểm: ${sub.score}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                    label: Text('Điểm: ${sub.score}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                                     backgroundColor: AppColors.success,
+                                    visualDensity: VisualDensity.compact,
                                   )
                               ],
                             ),
-                            if (sub.feedback != null)
+                            _buildSubmissionPreview(sub.fileUrl),
+                            if (sub.feedback != null && sub.feedback!.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text('Nhận xét: ${sub.feedback}', style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Text('Nhận xét của GV: ${sub.feedback}', style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.indigo)),
                               ),
+                            const SizedBox(height: 8),
+                            OutlinedButton.icon(
+                              onPressed: () => _showSubmitAssignmentModal(assign),
+                              icon: const Icon(Icons.edit, size: 16),
+                              label: const Text('Nộp lại / Chỉnh sửa bài nộp'),
+                              style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                            ),
                           ] else ...[
                             ElevatedButton.icon(
                               onPressed: () => _showSubmitAssignmentModal(assign),
@@ -393,28 +480,98 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
   }
 
   void _showSubmitAssignmentModal(AssignmentEntity assign) {
-    final controller = TextEditingController(text: 'https://github.com/myrepo/submission.pdf');
+    final existingUrl = assign.mySubmission?.fileUrl ?? '';
+    final controller = TextEditingController(text: existingUrl);
+    int selectedType = existingUrl.isNotEmpty && _isImageUrl(existingUrl) ? 1 : 0;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Nộp bài tập: ${assign.title}'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(labelText: 'Đường dẫn File / Báo cáo (URL)', hintText: 'https://...'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
-          ElevatedButton(
-            onPressed: () async {
-              if (controller.text.trim().isNotEmpty) {
-                await _repo.submitAssignment(assign.id, controller.text.trim());
-                Navigator.pop(ctx);
-                _loadAllClassData();
-              }
-            },
-            child: const Text('Gửi bài'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(assign.mySubmission != null ? 'Cập nhật bài nộp' : 'Nộp bài tập: ${assign.title}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    ChoiceChip(
+                      label: const Row(
+                        children: [
+                          Icon(Icons.link, size: 16),
+                          SizedBox(width: 4),
+                          Text('Đường dẫn Link'),
+                        ],
+                      ),
+                      selected: selectedType == 0,
+                      onSelected: (val) {
+                        if (val) setDialogState(() => selectedType = 0);
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Row(
+                        children: [
+                          Icon(Icons.image, size: 16),
+                          SizedBox(width: 4),
+                          Text('Hình ảnh (URL)'),
+                        ],
+                      ),
+                      selected: selectedType == 1,
+                      onSelected: (val) {
+                        if (val) setDialogState(() => selectedType = 1);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    labelText: selectedType == 0 ? 'Đường dẫn bài làm (Drive / Github / Docs)' : 'Đường dẫn URL hình ảnh bài làm',
+                    hintText: selectedType == 0 ? 'https://drive.google.com/...' : 'https://res.cloudinary.com/image.jpg',
+                    prefixIcon: Icon(selectedType == 0 ? Icons.link : Icons.image, color: AppColors.primary),
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (_) => setDialogState(() {}),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  selectedType == 0
+                      ? '💡 Bạn có thể dán link Google Drive, Github, Notion, Figma,...'
+                      : '💡 Dán trực tiếp liên kết hình ảnh bài chụp (jpg, png, Cloudinary...)',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                if (controller.text.trim().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  const Text('Xem trước bài nộp:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  _buildSubmissionPreview(controller.text.trim()),
+                ],
+              ],
+            ),
           ),
-        ],
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
+            ElevatedButton(
+              onPressed: () async {
+                final inputUrl = controller.text.trim();
+                if (inputUrl.isNotEmpty) {
+                  await _repo.submitAssignment(assign.id, inputUrl);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  _loadAllClassData();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Đã gửi bài tập thành công!'), backgroundColor: AppColors.success),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              child: Text(assign.mySubmission != null ? 'Cập nhật' : 'Gửi bài'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -491,7 +648,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('${s.studentName ?? "SV"} (${s.studentCode ?? "N/A"})', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  Text('File: ${s.fileUrl}', style: const TextStyle(color: Colors.blue, fontSize: 12)),
+                                  _buildSubmissionPreview(s.fileUrl),
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
