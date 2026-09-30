@@ -6,11 +6,15 @@ import '../theme/app_colors.dart';
 class AppVideoPlayer extends StatefulWidget {
   final String videoUrl;
   final String? title;
+  final bool preventFastForward;
+  final VoidCallback? onVideoCompleted;
 
   const AppVideoPlayer({
     super.key,
     required this.videoUrl,
     this.title,
+    this.preventFastForward = true,
+    this.onVideoCompleted,
   });
 
   @override
@@ -21,7 +25,13 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
   bool _hasError = false;
+  String _errorDetail = '';
   bool _showControls = true;
+  bool _hasTriggeredCompletion = false;
+
+  // Track max watched position to prevent skipping ahead
+  Duration _maxWatchedPosition = Duration.zero;
+  double _currentSpeed = 1.0;
 
   @override
   void initState() {
@@ -44,6 +54,8 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       setState(() {
         _isInitialized = false;
         _hasError = false;
+        _maxWatchedPosition = Duration.zero;
+        _hasTriggeredCompletion = false;
       });
       _initializePlayer();
     }
@@ -56,9 +68,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       _controller = controller;
 
       await controller.initialize();
-      controller.addListener(() {
-        if (mounted) setState(() {});
-      });
+      controller.addListener(_videoListener);
 
       if (mounted) {
         setState(() {
@@ -71,13 +81,56 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
         setState(() {
           _isInitialized = false;
           _hasError = true;
+          _errorDetail = e.toString();
         });
       }
     }
   }
 
+  void _videoListener() {
+    if (!mounted || _controller == null || !_controller!.value.isInitialized) return;
+
+    final value = _controller!.value;
+    final currentPos = value.position;
+    final totalDuration = value.duration;
+
+    // 1. Anti-Fast-Forward Check (Chống tua trước)
+    if (widget.preventFastForward) {
+      // If user seeks past max watched position (+ 3 seconds threshold)
+      if (currentPos > _maxWatchedPosition + const Duration(seconds: 3)) {
+        _controller!.seekTo(_maxWatchedPosition);
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Bạn cần xem tuần tự bài giảng, không được tua nhanh trước!'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+    }
+
+    // Update max watched position as video plays
+    if (currentPos > _maxWatchedPosition) {
+      _maxWatchedPosition = currentPos;
+    }
+
+    // 2. Auto-Complete trigger when watched >= 90%
+    if (totalDuration > Duration.zero && !_hasTriggeredCompletion) {
+      final progress = currentPos.inMilliseconds / totalDuration.inMilliseconds;
+      if (progress >= 0.90) {
+        _hasTriggeredCompletion = true;
+        widget.onVideoCompleted?.call();
+      }
+    }
+
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    _controller?.removeListener(_videoListener);
     _controller?.dispose();
     super.dispose();
   }
@@ -87,6 +140,20 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  void _changeSpeed() {
+    if (_controller == null || !_isInitialized) return;
+    double nextSpeed = 1.0;
+    if (_currentSpeed == 1.0) nextSpeed = 1.25;
+    else if (_currentSpeed == 1.25) nextSpeed = 1.5;
+    else if (_currentSpeed == 1.5) nextSpeed = 2.0;
+    else nextSpeed = 1.0;
+
+    _controller!.setPlaybackSpeed(nextSpeed);
+    setState(() {
+      _currentSpeed = nextSpeed;
+    });
   }
 
   String _formatDuration(Duration duration) {
@@ -103,7 +170,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 220,
+      height: 230,
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.circular(12),
@@ -124,7 +191,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
         const CircularProgressIndicator(color: AppColors.primary),
         const SizedBox(height: 12),
         Text(
-          widget.title ?? 'Đang tải video...',
+          widget.title ?? 'Đang tải video bài giảng...',
           style: const TextStyle(color: Colors.white70, fontSize: 13),
         ),
       ],
@@ -132,27 +199,55 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
   }
 
   Widget _buildErrorView() {
+    final isPluginErr = _errorDetail.contains('MissingPluginException');
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
+          const Icon(Icons.error_outline, color: Colors.orangeAccent, size: 40),
           const SizedBox(height: 8),
-          const Text(
-            'Không thể phát video này trực tiếp',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+          Text(
+            isPluginErr
+                ? 'Vui lòng khởi động lại app để nạp trình phát video mới'
+                : 'Không thể phát video trực tiếp',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isPluginErr
+                ? 'Thư viện phát video vừa được thêm cần khởi động lại app (Restart/Build) trên điện thoại để đăng ký bộ mã hóa Android.'
+                : 'Vui lòng kiểm tra lại kết nối mạng hoặc thử lại.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white60, fontSize: 11),
           ),
           const SizedBox(height: 12),
-          ElevatedButton.icon(
-            onPressed: _openExternal,
-            icon: const Icon(Icons.open_in_new, size: 16),
-            label: const Text('Mở trình phát ngoài'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _disposeAndReinitialize,
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('Thử lại'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                ),
+              ),
+              const SizedBox(width: 10),
+              OutlinedButton.icon(
+                onPressed: _openExternal,
+                icon: const Icon(Icons.open_in_new, size: 16),
+                label: const Text('Mở ngoài'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white70,
+                  side: const BorderSide(color: Colors.white30),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -161,7 +256,8 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
 
   Widget _buildVideoView() {
     final controller = _controller!;
-    final isPlaying = controller.value.isPlaying;
+    final value = controller.value;
+    final isPlaying = value.isPlaying;
 
     return GestureDetector(
       onTap: () {
@@ -174,48 +270,98 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
         children: [
           Center(
             child: AspectRatio(
-              aspectRatio: controller.value.aspectRatio > 0 ? controller.value.aspectRatio : 16 / 9,
+              aspectRatio: value.aspectRatio > 0 ? value.aspectRatio : 16 / 9,
               child: VideoPlayer(controller),
             ),
           ),
 
-          // Title bar top overlay
-          if (_showControls && widget.title != null)
+          // Anti-tua Badge (Top Left)
+          if (widget.preventFastForward)
             Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
+              top: 10,
+              left: 10,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.black87, Colors.transparent],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.65),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.orange.withOpacity(0.5)),
                 ),
-                child: Text(
-                  widget.title!,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: const Row(
+                  children: [
+                    Icon(Icons.shield_outlined, color: Colors.orangeAccent, size: 14),
+                    SizedBox(width: 4),
+                    Text(
+                      'Chống tua trước',
+                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
               ),
             ),
 
+          // Speed Control Badge (Top Right)
+          Positioned(
+            top: 6,
+            right: 6,
+            child: TextButton(
+              onPressed: _changeSpeed,
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.black54,
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                '${_currentSpeed}x',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+          ),
+
           // Play / Pause toggle overlay center button
           if (_showControls)
-            IconButton(
-              iconSize: 56,
-              icon: Icon(
-                isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
-                color: Colors.white.withOpacity(0.9),
-              ),
-              onPressed: () {
-                setState(() {
-                  isPlaying ? controller.pause() : controller.play();
-                });
-              },
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Replay 10s
+                IconButton(
+                  iconSize: 36,
+                  icon: const Icon(Icons.replay_10, color: Colors.white70),
+                  onPressed: () {
+                    final target = value.position - const Duration(seconds: 10);
+                    controller.seekTo(target < Duration.zero ? Duration.zero : target);
+                  },
+                ),
+                const SizedBox(width: 16),
+                // Play / Pause
+                IconButton(
+                  iconSize: 56,
+                  icon: Icon(
+                    isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      isPlaying ? controller.pause() : controller.play();
+                    });
+                  },
+                ),
+                const SizedBox(width: 16),
+                // Forward 10s (Only up to max watched position)
+                IconButton(
+                  iconSize: 36,
+                  icon: const Icon(Icons.forward_10, color: Colors.white70),
+                  onPressed: () {
+                    final target = value.position + const Duration(seconds: 10);
+                    if (widget.preventFastForward && target > _maxWatchedPosition) {
+                      controller.seekTo(_maxWatchedPosition);
+                    } else {
+                      controller.seekTo(target > value.duration ? value.duration : target);
+                    }
+                  },
+                ),
+              ],
             ),
 
           // Bottom control bar
@@ -238,7 +384,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
                   children: [
                     VideoProgressIndicator(
                       controller,
-                      allowScrubbing: true,
+                      allowScrubbing: !widget.preventFastForward, // Lock scrubbing if anti-tua is active
                       colors: const VideoProgressColors(
                         playedColor: AppColors.primary,
                         bufferedColor: Colors.white30,
@@ -250,16 +396,17 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${_formatDuration(controller.value.position)} / ${_formatDuration(controller.value.duration)}',
+                          '${_formatDuration(value.position)} / ${_formatDuration(value.duration)}',
                           style: const TextStyle(color: Colors.white70, fontSize: 11),
                         ),
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.open_in_new, color: Colors.white70, size: 18),
-                          tooltip: 'Mở trình duyệt ngoài',
-                          onPressed: _openExternal,
-                        ),
+                        if (_hasTriggeredCompletion)
+                          const Row(
+                            children: [
+                              Icon(Icons.check_circle, color: AppColors.success, size: 14),
+                              SizedBox(width: 4),
+                              Text('Đã xem xong', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                       ],
                     ),
                   ],

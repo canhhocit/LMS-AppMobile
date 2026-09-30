@@ -154,6 +154,21 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
                 key: ValueKey(_activeLesson!.id),
                 videoUrl: _activeLesson!.videoUrl!,
                 title: _activeLesson!.title,
+                preventFastForward: true,
+                onVideoCompleted: () async {
+                  if (!_activeLesson!.isCompleted) {
+                    await _repo.markLessonProgress(_activeLesson!.id, true);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🎉 Bạn đã học xong và hoàn thành bài học này!'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                      _loadAllClassData();
+                    }
+                  }
+                },
               )
             else
               Container(
