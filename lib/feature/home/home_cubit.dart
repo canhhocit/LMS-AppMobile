@@ -17,12 +17,19 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       final user = await authRepository.getCurrentUser();
       final classes = await studentRepository.getMyClasses();
-      final schedule = await studentRepository.getMySchedule();
+      final allSchedule = await studentRepository.getMySchedule();
+
+      // Filter today's schedule based on current weekday
+      final now = DateTime.now();
+      // DateTime.weekday: 1 = Mon ... 7 = Sun -> Map to 2 = Mon ... 8 = Sun
+      final todayDayOfWeek = (now.weekday == 7) ? 8 : (now.weekday + 1);
+
+      final todaySchedule = allSchedule.where((s) => s.dayOfWeek == todayDayOfWeek).toList();
 
       emit(HomeLoaded(
         user: user,
         classes: classes,
-        todaySchedule: schedule,
+        todaySchedule: todaySchedule,
       ));
     } catch (e) {
       emit(HomeError(e.toString()));

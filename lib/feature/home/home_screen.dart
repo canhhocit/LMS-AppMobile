@@ -110,6 +110,8 @@ class HomeScreen extends StatelessWidget {
                                       ? 'Khoa: ${user?.faculty ?? "Chưa cập nhật"} • MSG: ${user?.lecturerCode ?? "---"}'
                                       : 'Lớp: ${user?.adminClassName ?? "---"} • MSV: ${user?.studentCode ?? "---"}',
                                   style: AppTextStyles.body2.copyWith(fontSize: 12),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
@@ -210,21 +212,28 @@ class HomeScreen extends StatelessWidget {
                                                 style: AppTextStyles.body1.copyWith(
                                                   fontWeight: FontWeight.bold,
                                                 ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                               const SizedBox(height: 4),
                                               Row(
                                                 children: [
                                                   const Icon(Icons.meeting_room_outlined, size: 14, color: AppColors.textSecondary),
                                                   const SizedBox(width: 4),
-                                                  Text(
-                                                    'Phòng: ${item.room.isNotEmpty ? item.room : "---"} • Mã lớp: ${item.classCode}',
-                                                    style: AppTextStyles.body2,
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Phòng: ${item.room.isNotEmpty ? item.room : "---"} • Mã lớp: ${item.classCode}',
+                                                      style: AppTextStyles.body2,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
                                             ],
                                           ),
                                         ),
+                                        const SizedBox(width: 8),
                                         AppBadge(
                                           text: item.timeSlot,
                                           variant: AppBadgeVariant.primary,
