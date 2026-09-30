@@ -498,14 +498,97 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
       final userRoleStr = user?.isLecturer == true ? 'GIẢNG VIÊN' : 'SINH VIÊN';
       final userNameStr = user?.fullName ?? 'Người dùng';
 
-      final systemContext = '[CẤU HÌNH CÁ NHÂN HÓA TRỢ LÝ AI]\n'
-          '- Tên Trợ lý AI: $aiName\n'
-          '- Phong cách phản hồi (Tone of Voice): $toneStyle\n'
-          '- System Prompt chỉ dẫn cá nhân: $customPrompt\n'
-          '- Mục tiêu GPA / Định hướng người học ($userRoleStr - $userNameStr): $targetGoal\n'
-          'Hãy phản hồi người dùng ($userNameStr) theo đúng danh xưng, phong cách và chỉ dẫn hệ thống trên.';
+      // --- RAG DATA RETRIEVAL (Schedule, Grades, Classes, Tuition) ---
+      List<ScheduleItemEntity> scheduleList = [];
+      List<GradeEntity> gradeList = [];
+      List<CourseClassEntity> classList = [];
+      List<TuitionItemEntity> tuitionList = [];
 
-      final fullPrompt = '$systemContext\n\n[CÂU HỎI CỦA $userRoleStr $userNameStr]: $prompt';
+      await Future.wait([
+        getMySchedule().then((val) => scheduleList = val).catchError((_) => <ScheduleItemEntity>[]),
+        getMyGrades().then((val) => gradeList = val).catchError((_) => <GradeEntity>[]),
+        getMyClasses().then((val) => classList = val).catchError((_) => <CourseClassEntity>[]),
+        getTuitionInvoices().then((val) => tuitionList = val).catchError((_) => <TuitionItemEntity>[]),
+      ]);
+
+      // 1. Build Schedule context
+      final now = DateTime.now();
+      final todayWeekday = now.weekday; // 1 = Mon, 7 = Sun
+      final todaySchedule = scheduleList.where((s) => s.dayOfWeek == todayWeekday).toList();
+      String scheduleContext;
+      if (scheduleList.isEmpty) {
+        scheduleContext = 'Chưa có lịch học nào.';
+      } else {
+        final todayStr = todaySchedule.isEmpty
+            ? 'Hôm nay (Thứ $todayWeekday, ${now.day}/${now.month}/${now.year}): Không có tiết học nào.'
+            : 'Hôm nay (Thứ $todayWeekday, ${now.day}/${now.month}/${now.year}):\n' +
+                todaySchedule.map((s) => '  + ${s.courseName} (${s.classCode}): ${s.timeSlot}, Phòng ${s.room}, GV: ${s.teacherName}').join('\n');
+        final allStr = scheduleList.map((s) => '  + Thứ ${s.dayOfWeek}: ${s.courseName} (${s.timeSlot}, Phòng: ${s.room}, GV: ${s.teacherName})').join('\n');
+        scheduleContext = '$todayStr\nLịch toàn tuần:\n$allStr';
+      }
+
+      // 2. Build Grades context
+      String gradesContext;
+      if (gradeList.isEmpty) {
+        gradesContext = 'Chưa có dữ liệu điểm.';
+      } else {
+        double totalSum = 0;
+        int count = 0;
+        final lines = <String>[];
+        for (final g in gradeList) {
+          if (g.overallGrade != null) {
+            totalSum += g.overallGrade!;
+            count++;
+          }
+          lines.add('  + ${g.courseName} (${g.courseCode}): Điểm tổng kết ${g.overallGrade ?? "Chưa nhập"} (${g.letterGrade ?? "-"})');
+        }
+        final gpa10 = count > 0 ? (totalSum / count) : 0.0;
+        final gpa4 = (gpa10 / 10.0) * 4.0;
+        gradesContext = 'GPA Tích lũy: ${gpa10.toStringAsFixed(2)}/10 (${gpa4.toStringAsFixed(2)}/4.0)\nChi tiết môn học:\n${lines.join("\n")}';
+      }
+
+      // 3. Build Classes context
+      String classesContext = classList.isEmpty
+          ? 'Chưa đăng ký lớp học phần nào.'
+          : classList.map((c) => '  + ${c.courseTitle} (Mã: ${c.classCode}) - GV: ${c.lecturerName ?? "Chưa phân công"}').join('\n');
+
+      // 4. Build Tuition context
+      String tuitionContext;
+      if (tuitionList.isEmpty) {
+        tuitionContext = 'Không có nợ học phí.';
+      } else {
+        final unpaid = tuitionList.fold(0.0, (sum, t) => sum + t.remainingAmount);
+        tuitionContext = 'Tổng nợ học phí hiện tại: ${unpaid.toStringAsFixed(0)} VNĐ\nChi tiết:\n' +
+            tuitionList.map((t) => '  + HK ${t.semester}: Đã nộp ${t.paidAmount.toStringAsFixed(0)} VNĐ, Còn thiếu ${t.remainingAmount.toStringAsFixed(0)} VNĐ (${t.status})').join('\n');
+      }
+
+      final ragContext = '''
+[DỮ LIỆU THỰC TẾ HỆ THỐNG LEARNINGHUB LMS CỦA NGƯỜI DÙNG ($userNameStr - $userRoleStr)]:
+1. THỜI KHÓA BIỂU & LỊCH HỌC:
+$scheduleContext
+
+2. KẾT QUẢ HỌC TẬP & ĐIỂM SỐ:
+$gradesContext
+
+3. DANH SÁCH LỚP HỌC PHẦN ĐANG HỌC:
+$classesContext
+
+4. HỌC PHÍ & TÀI CHÍNH:
+$tuitionContext
+''';
+
+      final fullPrompt = '''
+[CẤU HÌNH TRỢ LÝ AI]
+- Tên Trợ lý AI: $aiName
+- Phong cách: $toneStyle
+- Chỉ dẫn cá nhân: $customPrompt
+- Mục tiêu GPA: $targetGoal
+
+$ragContext
+
+[YÊU CẦU CỦA NGƯỜI DÙNG ($userNameStr)]: $prompt
+Dựa VÀO CHÍNH XÁC DỮ LIỆU THỰC TẾ LMS Ở TRÊN để trả lời thắc mắc của $userNameStr một cách ngắn gọn, chính xác, thân thiện và tạo động lực học tập. Nếu câu hỏi về lịch học, điểm số, học phí thì BẮT BUỘC trả lời theo dữ liệu LMS thực tế trên.
+''';
 
       String responseText = '';
 
@@ -523,7 +606,7 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
       } catch (_) {
         // 2. Fallback to /ai/advisor/ask (Academic Advisor Analysis)
         final res = await _dio.post(ApiEndpoints.aiAdvisorAsk, data: {
-          'customQuery': prompt,
+          'customQuery': fullPrompt,
         });
         final result = _unwrap(res);
         if (result is Map) {
