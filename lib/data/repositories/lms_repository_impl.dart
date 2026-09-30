@@ -507,17 +507,36 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
       final fullPrompt = '$systemContext\n\n[CÂU HỎI CỦA $userRoleStr $userNameStr]: $prompt';
 
-      final res = await _dio.post(ApiEndpoints.aiAdvisorChat, data: {
-        'prompt': fullPrompt,
-        'question': prompt,
-      });
-      final result = _unwrap(res);
-      String responseText = 'Không có phản hồi từ AI';
-      if (result is Map) {
-        responseText = result['advice'] ?? result['response'] ?? result['reply'] ?? result['aiResponse'] ?? result.toString();
-      } else if (result != null) {
-        responseText = result.toString();
+      String responseText = '';
+
+      // 1. Try /ai/advisor/chat (Direct Hikari AI Chat)
+      try {
+        final res = await _dio.post(ApiEndpoints.aiAdvisorChat, data: {
+          'prompt': fullPrompt,
+        });
+        final result = _unwrap(res);
+        if (result is Map) {
+          responseText = (result['reply'] ?? result['response'] ?? result['aiAdviceSummary'] ?? result['advice'] ?? '').toString();
+        } else if (result != null) {
+          responseText = result.toString();
+        }
+      } catch (_) {
+        // 2. Fallback to /ai/advisor/ask (Academic Advisor Analysis)
+        final res = await _dio.post(ApiEndpoints.aiAdvisorAsk, data: {
+          'customQuery': prompt,
+        });
+        final result = _unwrap(res);
+        if (result is Map) {
+          responseText = (result['aiAdviceSummary'] ?? result['reply'] ?? result['advice'] ?? result['response'] ?? '').toString();
+        } else if (result != null) {
+          responseText = result.toString();
+        }
       }
+
+      if (responseText.isEmpty) {
+        responseText = 'Cố vấn AI hiện chưa có phản hồi. Vui lòng thử lại sau!';
+      }
+
       return ChatMessageEntity(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         text: responseText,

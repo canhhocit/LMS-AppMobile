@@ -65,7 +65,8 @@ class ApiEndpoints {
   static String markNotificationRead(int id) => '/notifications/$id/read';
 
   // AI Learning Advisor
-  static const String aiAdvisorChat = '/ai/advisor/ask';
+  static const String aiAdvisorChat = '/ai/advisor/chat';
+  static const String aiAdvisorAsk = '/ai/advisor/ask';
 
   // Tuition Payment & PayOS
   static String payTuition(int invoiceId) => '/me/tuition/$invoiceId/pay';
