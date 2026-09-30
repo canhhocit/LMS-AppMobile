@@ -22,11 +22,11 @@ class RegistrationPeriodEntity {
   factory RegistrationPeriodEntity.fromJson(Map<String, dynamic> json) {
     return RegistrationPeriodEntity(
       id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
-      name: json['name'] ?? '',
-      semester: json['semester'] ?? '',
-      academicYear: json['academicYear'] ?? json['academic_year'] ?? '',
-      openAt: json['openAt'] ?? json['open_at'] ?? '',
-      closeAt: json['closeAt'] ?? json['close_at'] ?? '',
+      name: (json['name'] ?? '').toString(),
+      semester: (json['semester'] ?? '').toString(),
+      academicYear: (json['academicYear'] ?? json['academic_year'] ?? '').toString(),
+      openAt: (json['openAt'] ?? json['open_at'] ?? '').toString(),
+      closeAt: (json['closeAt'] ?? json['close_at'] ?? '').toString(),
       maxCredits: json['maxCredits'] ?? json['max_credits'] ?? 24,
       isActive: json['isActive'] ?? json['is_active'] ?? false,
     );
@@ -59,16 +59,20 @@ class AvailableClassEntity {
   });
 
   factory AvailableClassEntity.fromJson(Map<String, dynamic> json) {
+    final count = json['currentEnrolled'] ?? json['currentStudents'] ?? json['current_enrolled'] ?? json['studentCount'] ?? 0;
+    final title = json['courseTitle'] ?? json['className'] ?? json['course_title'] ?? json['courseName'] ?? 'Lớp học phần';
+    final cCode = json['classCode'] ?? json['clazzCode'] ?? json['class_code'] ?? '';
+
     return AvailableClassEntity(
       id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
-      classCode: json['classCode'] ?? json['class_code'] ?? '',
-      className: json['className'] ?? json['class_name'] ?? '',
-      courseCode: json['courseCode'] ?? json['course_code'] ?? '',
-      courseTitle: json['courseTitle'] ?? json['course_title'] ?? '',
-      credit: json['credit'] ?? 3,
+      classCode: cCode.toString(),
+      className: (json['className'] ?? json['class_name'] ?? title).toString(),
+      courseCode: (json['courseCode'] ?? json['course_code'] ?? '').toString(),
+      courseTitle: title.toString(),
+      credit: json['credit'] ?? json['credits'] ?? 3,
       lecturerName: json['lecturerName'] ?? json['lecturer_name'],
       maxStudents: json['maxStudents'] ?? json['max_students'] ?? 50,
-      currentEnrolled: json['currentEnrolled'] ?? json['current_enrolled'] ?? 0,
+      currentEnrolled: count is int ? count : int.tryParse(count.toString()) ?? 0,
       isRegistered: json['isRegistered'] ?? json['is_registered'] ?? false,
     );
   }

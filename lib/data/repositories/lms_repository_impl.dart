@@ -178,7 +178,25 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   Future<List<ChapterEntity>> getClassChapters(int classId) async {
     final res = await _dio.get(ApiEndpoints.classChapters(classId));
     final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => ChapterEntity.fromJson(e as Map<String, dynamic>)).toList();
+    final chapters = list.map((e) => ChapterEntity.fromJson(e as Map<String, dynamic>)).toList();
+
+    for (int i = 0; i < chapters.length; i++) {
+      if (chapters[i].lessons.isEmpty) {
+        try {
+          final lessonRes = await _dio.get(ApiEndpoints.chapterLessons(chapters[i].id));
+          final lessonList = _unwrap(lessonRes) as List<dynamic>? ?? [];
+          final lessons = lessonList.map((e) => LessonEntity.fromJson(e as Map<String, dynamic>)).toList();
+          chapters[i] = ChapterEntity(
+            id: chapters[i].id,
+            title: chapters[i].title,
+            description: chapters[i].description,
+            sortOrder: chapters[i].sortOrder,
+            lessons: lessons,
+          );
+        } catch (_) {}
+      }
+    }
+    return chapters;
   }
 
   @override

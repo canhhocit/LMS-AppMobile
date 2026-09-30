@@ -34,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocProvider(
       create: (_) => LoginCubit(getIt()),
       child: Scaffold(
+        backgroundColor: AppColors.background,
         body: BlocConsumer<LoginCubit, LoginState>(
           listener: (context, state) {
             if (state is LoginSuccess) {
@@ -55,30 +56,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
             return Stack(
               children: [
-                // Top Header Gradient Background
+                // Top Header Background
                 Container(
-                  height: MediaQuery.of(context).size.height * 0.45,
+                  height: MediaQuery.of(context).size.height * 0.42,
                   decoration: const BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.vertical(
-                      bottom: Radius.circular(32),
+                      bottom: Radius.circular(28),
                     ),
                   ),
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const AppEducationLogo(size: 84),
+                        const AppEducationLogo(size: 80),
                         const SizedBox(height: 12),
                         Text(
                           'LearningHub Mobile',
-                          style: AppTextStyles.h1.copyWith(color: Colors.white),
+                          style: AppTextStyles.h1.copyWith(color: Colors.white, fontSize: 24),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Hệ thống học tập',
+                          'Hệ thống quản lý học tập & đào tạo',
                           style: AppTextStyles.body2.copyWith(
                             color: Colors.white.withOpacity(0.85),
+                            fontSize: 13,
                           ),
                         ),
                       ],
@@ -89,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Login Form Card
                 SingleChildScrollView(
                   padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).size.height * 0.35,
+                    top: MediaQuery.of(context).size.height * 0.32,
                     left: 20,
                     right: 20,
                     bottom: 24,
@@ -98,12 +100,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -112,31 +115,31 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           'Đăng nhập tài khoản',
-                          style: AppTextStyles.h2,
+                          style: AppTextStyles.h2.copyWith(fontSize: 20),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Text(
-                          'Nhập thông tin tài khoản để tiếp tục',
+                          'Vui lòng nhập tên tài khoản hoặc mã sinh viên',
                           style: AppTextStyles.body2,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         AppTextField(
-                          label: 'Email /Mã sinh viên',
-                          hint: '',
+                          label: 'Tài khoản / Mã sinh viên',
+                          hint: 'Nhập mã sinh viên hoặc email',
                           controller: _usernameController,
-                          prefixIcon: Icons.person_outline,
+                          prefixIcon: Icons.person_outline_rounded,
                         ),
                         const SizedBox(height: 16),
                         AppTextField(
                           label: 'Mật khẩu',
-                          hint: '',
+                          hint: 'Nhập mật khẩu của bạn',
                           controller: _passwordController,
                           isPassword: true,
-                          prefixIcon: Icons.lock_outline,
+                          prefixIcon: Icons.lock_outline_rounded,
                         ),
                         const SizedBox(height: 24),
                         AppButton(
-                          text: 'Đăng Nhập',
+                          text: 'Đăng nhập',
                           isLoading: isLoading,
                           onPressed: () {
                             context.read<LoginCubit>().login(
@@ -154,8 +157,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Thiết bị chưa cài đặt hoặc không hỗ trợ sinh trắc học!'),
-                                    backgroundColor: Colors.orange,
+                                    content: Text('Thiết bị chưa thiết lập sinh trắc học!'),
+                                    backgroundColor: AppColors.warning,
                                   ),
                                 );
                               }
@@ -168,18 +171,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             }
                           },
-                          icon: const Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 24),
-                          label: const Text('Đăng nhập Vân tay / FaceID', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                          icon: const Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 22),
+                          label: const Text('Đăng nhập Vân tay / FaceID', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(double.infinity, 48),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            side: const BorderSide(color: AppColors.border),
                           ),
                         ),
                         const SizedBox(height: 16),
                         Center(
                           child: TextButton(
                             onPressed: () {
-                              // Quick bypass for testing UI
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (_) => const MainTabScreen(),
@@ -187,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             },
                             child: Text(
-                              'Demo không cần login ➔',
+                              'Trải nghiệm hệ thống',
                               style: AppTextStyles.body2.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w600,

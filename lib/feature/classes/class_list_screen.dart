@@ -5,6 +5,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/app_badge.dart';
 import '../../core/widgets/app_card.dart';
+import '../../core/widgets/app_empty_state.dart';
+import '../../core/widgets/app_error_state.dart';
+import '../../core/widgets/app_skeleton.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/lms_repository.dart';
 import 'class_cubit.dart';
@@ -42,16 +45,23 @@ class _ClassListScreenState extends State<ClassListScreen> {
         body: BlocBuilder<ClassCubit, ClassState>(
           builder: (context, state) {
             if (state is ClassLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return AppSkeleton.listLoader(count: 4, height: 110);
             }
             if (state is ClassError) {
-              return Center(child: Text(state.message));
+              return AppErrorState(
+                message: state.message,
+                onRetry: () => context.read<ClassCubit>().loadClasses(),
+              );
             }
             if (state is ClassLoaded) {
               final classes = state.classes;
               if (classes.isEmpty) {
-                return Center(
-                  child: Text('Chưa có lớp học nào', style: AppTextStyles.body1),
+                return AppEmptyState(
+                  title: 'Chưa tham gia lớp học phần nào',
+                  subtitle: 'Các lớp môn học đăng ký thành công sẽ hiển thị tại đây.',
+                  icon: Icons.school_outlined,
+                  onAction: () => context.read<ClassCubit>().loadClasses(),
+                  actionLabel: 'Tải lại',
                 );
               }
 
@@ -70,7 +80,7 @@ class _ClassListScreenState extends State<ClassListScreen> {
                             MaterialPageRoute(
                               builder: (_) => ClassDetailScreen(
                                 courseClass: item,
-                                currentUser: _currentUser ?? const UserEntity(id: 1, fullName: 'Demo', email: 'demo@edu.vn', role: 'STUDENT'),
+                                currentUser: _currentUser ?? const UserEntity(id: 1, fullName: 'Người dùng', email: 'user@edu.vn', role: 'STUDENT'),
                               ),
                             ),
                           );
@@ -87,31 +97,31 @@ class _ClassListScreenState extends State<ClassListScreen> {
                                 ),
                                 Text(
                                   'Sĩ số: ${item.enrolledCount}/${item.maxStudents}',
-                                  style: AppTextStyles.caption,
+                                  style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 10),
                             Text(
                               item.courseTitle,
-                              style: AppTextStyles.h3,
+                              style: AppTextStyles.h3.copyWith(fontSize: 16),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
-                                const Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary),
+                                const Icon(Icons.person_outline_rounded, size: 16, color: AppColors.textSecondary),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'GV: ${item.lecturerName ?? "Phân công sau"}',
+                                  'GV: ${item.lecturerName ?? "Đang cập nhật"}',
                                   style: AppTextStyles.body2,
                                 ),
                               ],
                             ),
-                            if (item.scheduleText != null) ...[
+                            if (item.scheduleText != null && item.scheduleText!.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+                                  const Icon(Icons.access_time_rounded, size: 16, color: AppColors.textSecondary),
                                   const SizedBox(width: 4),
                                   Text(
                                     item.scheduleText!,

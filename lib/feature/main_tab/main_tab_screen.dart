@@ -6,10 +6,9 @@ import '../../core/widgets/offline_banner.dart';
 import '../classes/class_list_screen.dart';
 import '../home/home_screen.dart';
 import '../ai_advisor/ai_advisor_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../profile/profile_screen.dart';
 import '../schedule/schedule_screen.dart';
-import '../transcript/transcript_screen.dart';
-import '../tuition/tuition_screen.dart';
 
 class MainTabScreen extends StatefulWidget {
   const MainTabScreen({super.key});
@@ -54,9 +53,8 @@ class _MainTabScreenState extends State<MainTabScreen> {
       HomeScreen(onNavigateTab: _onTabTapped),
       const ClassListScreen(),
       const ScheduleScreen(),
-      const TranscriptScreen(),
+      const NotificationsScreen(),
       const ProfileScreen(),
-      const TuitionScreen(),
     ];
 
     return Scaffold(
@@ -73,46 +71,47 @@ class _MainTabScreenState extends State<MainTabScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const AiAdvisorScreen()),
           );
         },
-        elevation: 4,
-        backgroundColor: const Color(0xFF6366F1),
-        icon: const Icon(Icons.smart_toy_rounded, color: Colors.white),
-        label: const Text('Hỏi AI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        elevation: 3,
+        backgroundColor: AppColors.primary,
+        tooltip: 'Hỏi Cố vấn AI',
+        child: const Icon(Icons.assistant_outlined, color: Colors.white, size: 24),
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex > 4 ? 0 : _currentIndex,
+        selectedIndex: _currentIndex < pages.length ? _currentIndex : 0,
         onDestinationSelected: _onTabTapped,
-        indicatorColor: AppColors.primaryLight,
+        indicatorColor: AppColors.primaryBackground,
+        height: 64,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: AppColors.primary),
+            selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
             label: 'Trang chủ',
           ),
           NavigationDestination(
-            icon: Icon(Icons.class_outlined),
-            selectedIcon: Icon(Icons.class_, color: AppColors.primary),
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book_rounded, color: AppColors.primary),
             label: 'Lớp học',
           ),
           NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            selectedIcon: Icon(Icons.calendar_today, color: AppColors.primary),
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month_rounded, color: AppColors.primary),
             label: 'Lịch học',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart, color: AppColors.primary),
-            label: 'Điểm số',
+            icon: Icon(Icons.notifications_outlined),
+            selectedIcon: Icon(Icons.notifications_rounded, color: AppColors.primary),
+            label: 'Thông báo',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: AppColors.primary),
+            icon: Icon(Icons.person_outline_rounded),
+            selectedIcon: Icon(Icons.person_rounded, color: AppColors.primary),
             label: 'Cá nhân',
           ),
         ],

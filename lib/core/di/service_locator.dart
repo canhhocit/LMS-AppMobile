@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../app.dart';
 import '../../data/repositories/lms_repository_impl.dart';
 import '../../data/session/session_manager.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -27,7 +28,11 @@ Future<void> setupServiceLocator() async {
 
   // Network
   getIt.registerLazySingleton<AuthInterceptor>(
-    () => AuthInterceptor(getIt()),
+    () => AuthInterceptor(
+      getIt(),
+      navigatorKey: navigatorKey,
+      scaffoldMessengerKey: scaffoldMessengerKey,
+    ),
   );
   getIt.registerLazySingleton<DioClient>(
     () => DioClient(getIt()),

@@ -24,7 +24,8 @@ class ApiEndpoints {
 
   // Course & Class Detail Endpoints
   static String classDetail(int classId) => '/me/classes/$classId';
-  static String classChapters(int classId) => '/me/classes/$classId/chapters';
+  static String classChapters(int classId) => '/classes/$classId/chapters';
+  static String chapterLessons(int chapterId) => '/chapters/$chapterId/lessons';
   static String markLessonProgress(int lessonId) => '/lessons/$lessonId/progress';
   
   // Assignments

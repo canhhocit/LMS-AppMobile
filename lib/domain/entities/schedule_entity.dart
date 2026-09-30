@@ -20,15 +20,29 @@ class ScheduleItemEntity {
   });
 
   factory ScheduleItemEntity.fromJson(Map<String, dynamic> json) {
+    final startP = json['startPeriod'];
+    final endP = json['endPeriod'];
+    String slot = json['timeSlot'] ?? json['time_slot'] ?? '';
+    if (slot.isEmpty && startP != null) {
+      slot = (endP != null && endP != startP) ? 'Tiết $startP - $endP' : 'Tiết $startP';
+    }
+    if (slot.isEmpty) {
+      slot = 'Ca học';
+    }
+
+    final cName = json['courseTitle'] ?? json['className'] ?? json['courseName'] ?? json['course_name'] ?? json['title'] ?? 'Môn học';
+    final cCode = json['clazzCode'] ?? json['classCode'] ?? json['class_code'] ?? json['courseCode'] ?? '';
+    final teacher = json['lecturerName'] ?? json['teacherName'] ?? json['teacher_name'] ?? '';
+
     return ScheduleItemEntity(
       id: json['id'] is int ? json['id'] : int.parse((json['id'] ?? 0).toString()),
-      courseName: json['courseName'] ?? json['course_name'] ?? json['title'] ?? '',
-      classCode: json['classCode'] ?? json['class_code'] ?? '',
-      room: json['room'] ?? '',
-      teacherName: json['teacherName'] ?? json['teacher_name'] ?? json['lecturerName'] ?? '',
+      courseName: cName.toString(),
+      classCode: cCode.toString(),
+      room: (json['room'] ?? '').toString(),
+      teacherName: teacher.toString(),
       dayOfWeek: json['dayOfWeek'] ?? json['day_of_week'] ?? 2,
-      timeSlot: json['timeSlot'] ?? json['time_slot'] ?? '',
-      date: json['date'] ?? '',
+      timeSlot: slot,
+      date: (json['date'] ?? '').toString(),
     );
   }
 }

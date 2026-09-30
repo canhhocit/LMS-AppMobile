@@ -19,7 +19,6 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
   final TextEditingController _inputCtrl = TextEditingController();
   final ScrollController _scrollCtrl = ScrollController();
 
-  String _aiName = 'Hikari AI';
   List<ChatMessageEntity> _messages = [];
   bool _isSending = false;
   bool _isLoadingHistory = true;
@@ -27,12 +26,11 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAiConfigAndHistory();
+    _loadHistory();
   }
 
-  Future<void> _loadAiConfigAndHistory() async {
+  Future<void> _loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    final name = prefs.getString(StorageKeys.aiName) ?? 'Hikari AI';
     final savedHistoryStr = prefs.getString(StorageKeys.aiChatHistory);
 
     List<ChatMessageEntity> loadedMsgs = [];
@@ -58,7 +56,7 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
       loadedMsgs = [
         ChatMessageEntity(
           id: 'welcome-msg',
-          text: 'Xin chào! Tôi là $name – Trợ lý AI Học tập cá nhân của bạn. Tôi đã được cấu hình theo đúng phong cách và mục tiêu của bạn. Bạn cần tư vấn điều gì hôm nay?',
+          text: 'Xin chào! Tôi là Trợ lý Cố vấn Học tập của bạn. Tôi có thể giải đáp các thắc mắc về lịch học, điểm số, môn học và học phí. Bạn cần trợ giúp gì?',
           isUser: false,
           timestamp: DateTime.now(),
         ),
@@ -67,7 +65,6 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
 
     if (mounted) {
       setState(() {
-        _aiName = name;
         _messages = loadedMsgs;
         _isLoadingHistory = false;
       });
@@ -87,53 +84,46 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
   }
 
   Future<void> _clearHistory() async {
-    showDialog(
+    final confirm = await showDialog<bool>(
       context: context,
-      builder: (dialogCtx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Xóa lịch sử chat'),
-          content: Text('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện với $_aiName không?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Hủy'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove(StorageKeys.aiChatHistory);
-                if (mounted) {
-                  Navigator.pop(dialogCtx);
-                  setState(() {
-                    _messages = [
-                      ChatMessageEntity(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        text: 'Đã làm sạch lịch sử trò chuyện! Xin chào, $_aiName có thể trợ giúp gì cho bạn hôm nay?',
-                        isUser: false,
-                        timestamp: DateTime.now(),
-                      ),
-                    ];
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Đã xóa toàn bộ lịch sử chat thành công!'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Xóa', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Xóa lịch sử trò chuyện'),
+        content: const Text('Bạn có chắc chắn muốn xóa lịch sử trò chuyện với Cố vấn không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: const Text('Xóa', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
+
+    if (confirm == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(StorageKeys.aiChatHistory);
+      if (mounted) {
+        setState(() {
+          _messages = [
+            ChatMessageEntity(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              text: 'Đã làm sạch hội thoại. Tôi có thể hỗ trợ thông tin học tập gì cho bạn?',
+              isUser: false,
+              timestamp: DateTime.now(),
+            ),
+          ];
+        });
+      }
+    }
   }
 
-  Future<void> _sendMessage() async {
-    final text = _inputCtrl.text.trim();
+  Future<void> _sendMessage([String? prefilledText]) async {
+    final text = (prefilledText ?? _inputCtrl.text).trim();
     if (text.isEmpty || _isSending) return;
 
     final userMsg = ChatMessageEntity(
@@ -145,7 +135,7 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
 
     setState(() {
       _messages.add(userMsg);
-      _inputCtrl.clear();
+      if (prefilledText == null) _inputCtrl.clear();
       _isSending = true;
     });
 
@@ -166,7 +156,7 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
         setState(() {
           _messages.add(ChatMessageEntity(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
-            text: 'Xin lỗi, không thể kết nối tới dịch vụ AI Trợ lý lúc này. Vui lòng thử lại sau!',
+            text: 'Không thể kết nối tới dịch vụ Cố vấn học tập lúc này. Vui lòng thử lại sau!',
             isUser: false,
             timestamp: DateTime.now(),
           ));
@@ -183,7 +173,7 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
       if (_scrollCtrl.hasClients) {
         _scrollCtrl.animateTo(
           _scrollCtrl.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
       }
@@ -194,36 +184,22 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Icon(Icons.smart_toy_outlined, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_aiName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const Text('Live Personalized Assistant', style: TextStyle(fontSize: 10, color: Colors.white70)),
-                ],
-              ),
-            ),
-          ],
-        ),
+        title: const Text('Cố vấn học tập'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.white),
-            tooltip: 'Xóa lịch sử chat',
+            icon: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+            tooltip: 'Xóa lịch sử',
             onPressed: _clearHistory,
           ),
         ],
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
       ),
       body: _isLoadingHistory
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                // Chat conversation view
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollCtrl,
@@ -239,20 +215,13 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: msg.isUser ? AppColors.primary : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: msg.isUser ? null : Border.all(color: Colors.grey.shade300),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                            borderRadius: BorderRadius.circular(14),
+                            border: msg.isUser ? null : Border.all(color: AppColors.border),
                           ),
                           child: Text(
                             msg.text,
                             style: TextStyle(
-                              color: msg.isUser ? Colors.white : Colors.black87,
+                              color: msg.isUser ? Colors.white : AppColors.textPrimary,
                               fontSize: 14,
                               height: 1.4,
                             ),
@@ -266,27 +235,31 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
-                      children: [
-                        const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                        const SizedBox(width: 8),
-                        Text('$_aiName đang suy nghĩ...', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      children: const [
+                        SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                        SizedBox(width: 8),
+                        Text('Cố vấn đang truy xuất dữ liệu...', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
                       ],
                     ),
                   ),
-                // Quick suggestion chips
+
+                // Concise Utility Suggestions (Max 4 practical queries)
                 Container(
-                  height: 40,
+                  height: 42,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _buildPromptChip('Lộ trình cải thiện GPA?'),
-                      _buildPromptChip('Kinh nghiệm học môn khó?'),
-                      _buildPromptChip('Kiểm tra nguy cơ học tập?'),
-                      _buildPromptChip('Bí quyết quản lý thời gian?'),
+                      _buildSuggestionChip('Lịch học hôm nay của tôi?'),
+                      _buildSuggestionChip('Điểm GPA hiện tại?'),
+                      _buildSuggestionChip('Môn nào tôi đang học?'),
+                      _buildSuggestionChip('Học phí còn bao nhiêu?'),
                     ],
                   ),
                 ),
+                const SizedBox(height: 6),
+
+                // Input Bar
                 Container(
                   padding: const EdgeInsets.all(12),
                   color: Colors.white,
@@ -297,7 +270,7 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
                           controller: _inputCtrl,
                           onSubmitted: (_) => _sendMessage(),
                           decoration: InputDecoration(
-                            hintText: 'Nhập thắc mắc hoặc câu hỏi cho $_aiName...',
+                            hintText: 'Hỏi Cố vấn học tập...',
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           ),
@@ -306,9 +279,10 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
                       const SizedBox(width: 8),
                       CircleAvatar(
                         backgroundColor: AppColors.primary,
+                        radius: 22,
                         child: IconButton(
-                          icon: const Icon(Icons.send, color: Colors.white, size: 20),
-                          onPressed: _sendMessage,
+                          icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                          onPressed: () => _sendMessage(),
                         ),
                       ),
                     ],
@@ -319,19 +293,15 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
     );
   }
 
-  Widget _buildPromptChip(String text) {
+  Widget _buildSuggestionChip(String text) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ActionChip(
-        label: Text(text, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.primary.withOpacity(0.08),
-        side: BorderSide(color: AppColors.primary.withOpacity(0.2)),
-        onPressed: () {
-          _inputCtrl.text = text;
-          _sendMessage();
-        },
+        label: Text(text, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500)),
+        backgroundColor: AppColors.primaryBackground,
+        side: const BorderSide(color: AppColors.border),
+        onPressed: () => _sendMessage(text),
       ),
     );
   }
 }
-

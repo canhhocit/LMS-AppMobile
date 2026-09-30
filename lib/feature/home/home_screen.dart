@@ -7,13 +7,15 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/app_avatar.dart';
 import '../../core/widgets/app_badge.dart';
 import '../../core/widgets/app_card.dart';
-import '../../core/widgets/app_education_logo.dart';
+import '../../core/widgets/app_empty_state.dart';
+import '../../core/widgets/app_error_state.dart';
+import '../../core/widgets/app_skeleton.dart';
 import '../../domain/entities/user_entity.dart';
-import '../ai_advisor/ai_advisor_screen.dart';
 import '../attendance/attendance_screen.dart';
 import '../classes/class_detail_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../registration/registration_screen.dart';
+import '../transcript/transcript_screen.dart';
 import '../tuition/tuition_screen.dart';
 import 'home_cubit.dart';
 import 'home_state.dart';
@@ -36,21 +38,30 @@ class HomeScreen extends StatelessWidget {
           child: BlocBuilder<HomeCubit, HomeState>(
             builder: (context, state) {
               if (state is HomeLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (state is HomeError) {
-                return Center(
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(20.0),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(state.message, style: AppTextStyles.body1),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () => context.read<HomeCubit>().loadDashboard(),
-                        child: const Text('Thử lại'),
+                      Row(
+                        children: const [
+                          AppSkeleton.circular(size: 52),
+                          SizedBox(width: 14),
+                          Expanded(child: AppSkeleton.rectangular(height: 44)),
+                        ],
                       ),
+                      const SizedBox(height: 24),
+                      const AppSkeleton.rectangular(height: 120),
+                      const SizedBox(height: 24),
+                      AppSkeleton.listLoader(count: 3, height: 72),
                     ],
                   ),
+                );
+              }
+              if (state is HomeError) {
+                return AppErrorState(
+                  message: state.message,
+                  onRetry: () => context.read<HomeCubit>().loadDashboard(),
                 );
               }
 
@@ -68,7 +79,7 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header User Card
+                      // Header User Profile Bar
                       Row(
                         children: [
                           AppAvatar(
@@ -81,24 +92,28 @@ class HomeScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  isLecturer ? 'Xin chào Giảng viên' : 'Xin chào Sinh viên',
-                                  style: AppTextStyles.caption.copyWith(fontSize: 12),
+                                  isLecturer ? 'Giảng viên' : 'Sinh viên',
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontSize: 12,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 Text(
                                   user?.fullName ?? 'Người dùng',
-                                  style: AppTextStyles.h2.copyWith(fontSize: 19),
+                                  style: AppTextStyles.h2.copyWith(fontSize: 18),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
                                   isLecturer
-                                      ? 'Khoa: ${user?.faculty ?? "Chưa cập nhật"} • MSG: ${user?.lecturerCode ?? "Chưa có"}'
-                                      : 'Lớp: ${user?.adminClassName ?? "Chưa phân lớp"} • MSV: ${user?.studentCode ?? "Chưa có"}',
+                                      ? 'Khoa: ${user?.faculty ?? "Chưa cập nhật"} • MSG: ${user?.lecturerCode ?? "---"}'
+                                      : 'Lớp: ${user?.adminClassName ?? "---"} • MSV: ${user?.studentCode ?? "---"}',
                                   style: AppTextStyles.body2.copyWith(fontSize: 12),
                                 ),
                               ],
                             ),
                           ),
-                          const AppEducationLogo(size: 38),
-                          const SizedBox(width: 8),
                           Container(
                             decoration: BoxDecoration(
                               color: AppColors.surface,
@@ -106,83 +121,31 @@ class HomeScreen extends StatelessWidget {
                               border: Border.all(color: AppColors.border),
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.notifications_none, color: AppColors.textPrimary),
+                              icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                                );
+                                if (onNavigateTab != null) {
+                                  onNavigateTab!(3);
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                                  );
+                                }
                               },
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
-                      // Quick Action Grid
-                      Text('Dịch vụ & Năng lực nhanh', style: AppTextStyles.h3),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          _buildQuickActionButton(
-                            context: context,
-                            icon: Icons.how_to_reg_outlined,
-                            label: 'Đăng ký học',
-                            color: const Color(0xFF4F46E5),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const RegistrationScreen()),
-                              );
-                            },
-                          ),
-                          _buildQuickActionButton(
-                            context: context,
-                            icon: Icons.smart_toy_outlined,
-                            label: 'Trợ lý AI',
-                            color: const Color(0xFF8B5CF6),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const AiAdvisorScreen()),
-                              );
-                            },
-                          ),
-                          _buildQuickActionButton(
-                            context: context,
-                            icon: Icons.fact_check_outlined,
-                            label: 'Điểm danh',
-                            color: const Color(0xFF10B981),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const AttendanceScreen()),
-                              );
-                            },
-                          ),
-                          _buildQuickActionButton(
-                            context: context,
-                            icon: Icons.account_balance_wallet_outlined,
-                            label: 'Học phí',
-                            color: const Color(0xFFF59E0B),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const TuitionScreen()),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Today Schedule Banner
+                      // Today's Schedule Card (Highest Priority)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(isLecturer ? 'Lịch dạy hôm nay' : 'Lịch học hôm nay', style: AppTextStyles.h3),
+                          Text(
+                            isLecturer ? 'Lịch dạy hôm nay' : 'Lịch học hôm nay',
+                            style: AppTextStyles.h3,
+                          ),
                           TextButton(
                             onPressed: () => onNavigateTab?.call(2),
                             child: Text(
@@ -198,11 +161,34 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       schedule.isEmpty
                           ? AppCard(
-                              child: Center(
-                                child: Text(
-                                  isLecturer ? 'Hôm nay không có lịch dạy' : 'Hôm nay không có lịch học',
-                                  style: AppTextStyles.body2,
-                                ),
+                              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.08),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.event_available_rounded, color: AppColors.primary, size: 24),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          isLecturer ? 'Hôm nay không có lịch dạy' : 'Hôm nay không có lịch học',
+                                          style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w600, fontSize: 14),
+                                        ),
+                                        Text(
+                                          'Chúc bạn một ngày học tập và làm việc hiệu quả!',
+                                          style: AppTextStyles.body2.copyWith(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             )
                           : Column(
@@ -226,9 +212,15 @@ class HomeScreen extends StatelessWidget {
                                                 ),
                                               ),
                                               const SizedBox(height: 4),
-                                              Text(
-                                                'Mã lớp: ${item.classCode} • Phòng: ${item.room}',
-                                                style: AppTextStyles.body2,
+                                              Row(
+                                                children: [
+                                                  const Icon(Icons.meeting_room_outlined, size: 14, color: AppColors.textSecondary),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Phòng: ${item.room.isNotEmpty ? item.room : "---"} • Mã lớp: ${item.classCode}',
+                                                    style: AppTextStyles.body2,
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
@@ -245,11 +237,68 @@ class HomeScreen extends StatelessWidget {
                             ),
                       const SizedBox(height: 24),
 
-                      // Enrolled / Taught Classes Section
+                      // Quick Services Grid
+                      Text('Dịch vụ sinh viên', style: AppTextStyles.h3),
+                      const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(isLecturer ? 'Các Lớp học phần giảng dạy' : 'Lớp môn học học kỳ này', style: AppTextStyles.h3),
+                          _buildQuickServiceItem(
+                            context: context,
+                            icon: Icons.how_to_reg_outlined,
+                            label: 'Đăng ký học',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const RegistrationScreen()),
+                              );
+                            },
+                          ),
+                          _buildQuickServiceItem(
+                            context: context,
+                            icon: Icons.qr_code_scanner_rounded,
+                            label: 'Điểm danh',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AttendanceScreen()),
+                              );
+                            },
+                          ),
+                          _buildQuickServiceItem(
+                            context: context,
+                            icon: Icons.assessment_outlined,
+                            label: 'Bảng điểm',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const TranscriptScreen()),
+                              );
+                            },
+                          ),
+                          _buildQuickServiceItem(
+                            context: context,
+                            icon: Icons.account_balance_wallet_outlined,
+                            label: 'Học phí',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const TuitionScreen()),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // My Classes Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            isLecturer ? 'Lớp giảng dạy học kỳ này' : 'Lớp học phần học kỳ này',
+                            style: AppTextStyles.h3,
+                          ),
                           TextButton(
                             onPressed: () => onNavigateTab?.call(1),
                             child: Text(
@@ -263,65 +312,78 @@ class HomeScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Column(
-                        children: classes.map((c) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: AppCard(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ClassDetailScreen(
-                                      courseClass: c,
-                                      currentUser: user ?? const UserEntity(id: 1, fullName: 'Demo', email: 'demo@edu.vn', role: 'STUDENT'),
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryLight,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.book_rounded,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          c.courseTitle,
-                                          style: AppTextStyles.body1.copyWith(
-                                            fontWeight: FontWeight.w600,
+                      classes.isEmpty
+                          ? const AppEmptyState(
+                              title: 'Chưa tham gia lớp học nào',
+                              subtitle: 'Các lớp môn học của bạn sẽ xuất hiện tại đây.',
+                              icon: Icons.class_outlined,
+                            )
+                          : Column(
+                              children: classes.take(4).map((c) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: AppCard(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ClassDetailScreen(
+                                            courseClass: c,
+                                            currentUser: user ?? const UserEntity(id: 1, fullName: 'Người dùng', email: 'user@edu.vn', role: 'STUDENT'),
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          isLecturer ? 'Mã lớp: ${c.classCode} • ${c.enrolledCount} SV' : 'GV: ${c.lecturerName ?? "Chưa phân công"} • ${c.classCode}',
-                                          style: AppTextStyles.body2,
+                                      );
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 44,
+                                          height: 44,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primaryBackground,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(
+                                            Icons.book_outlined,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                c.courseTitle,
+                                                style: AppTextStyles.body1.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                isLecturer
+                                                    ? 'Mã lớp: ${c.classCode} • Sĩ số: ${c.enrolledCount} SV'
+                                                    : 'GV: ${c.lecturerName ?? "Đang cập nhật"} • ${c.classCode}',
+                                                style: AppTextStyles.body2,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const Icon(
+                                          Icons.chevron_right_rounded,
+                                          color: AppColors.textMuted,
                                         ),
                                       ],
                                     ),
                                   ),
-                                  const Icon(
-                                    Icons.chevron_right_rounded,
-                                    color: AppColors.textMuted,
-                                  ),
-                                ],
-                              ),
+                                );
+                              }).toList(),
                             ),
-                          );
-                        }).toList(),
-                      ),
                     ],
                   ),
                 ),
@@ -333,54 +395,43 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActionButton({
+  Widget _buildQuickServiceItem({
     required BuildContext context,
     required IconData icon,
     required String label,
-    required Color color,
     required VoidCallback onTap,
   }) {
-    final width = (MediaQuery.of(context).size.width - 52) / 2;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: width,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: AppTextStyles.caption.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+            child: Icon(icon, color: AppColors.primary, size: 26),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
     );
   }
