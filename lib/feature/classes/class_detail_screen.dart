@@ -54,12 +54,14 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
     try {
       final classId = widget.courseClass.id;
       final results = await Future.wait([
-        _repo.getClassChapters(classId),
-        _repo.getClassAssignments(classId),
-        _repo.getClassQuizzes(classId),
-        _repo.getClassForumPosts(classId),
-        _repo.getClassAttendance(classId),
-        widget.currentUser.isLecturer ? _repo.getClassGradebook(classId) : Future.value(<Map<String, dynamic>>[]),
+        _repo.getClassChapters(classId).catchError((_) => <ChapterEntity>[]),
+        _repo.getClassAssignments(classId).catchError((_) => <AssignmentEntity>[]),
+        _repo.getClassQuizzes(classId).catchError((_) => <QuizEntity>[]),
+        _repo.getClassForumPosts(classId).catchError((_) => <ForumPostEntity>[]),
+        _repo.getClassAttendance(classId).catchError((_) => <AttendanceEntity>[]),
+        widget.currentUser.isLecturer
+            ? _repo.getClassGradebook(classId).catchError((_) => <Map<String, dynamic>>[])
+            : Future.value(<Map<String, dynamic>>[]),
       ]);
 
       setState(() {

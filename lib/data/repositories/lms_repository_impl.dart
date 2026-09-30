@@ -176,27 +176,31 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Chapter & Lessons
   @override
   Future<List<ChapterEntity>> getClassChapters(int classId) async {
-    final res = await _dio.get(ApiEndpoints.classChapters(classId));
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    final chapters = list.map((e) => ChapterEntity.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final res = await _dio.get(ApiEndpoints.classChapters(classId));
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      final chapters = list.map((e) => ChapterEntity.fromJson(e as Map<String, dynamic>)).toList();
 
-    for (int i = 0; i < chapters.length; i++) {
-      if (chapters[i].lessons.isEmpty) {
-        try {
-          final lessonRes = await _dio.get(ApiEndpoints.chapterLessons(chapters[i].id));
-          final lessonList = _unwrap(lessonRes) as List<dynamic>? ?? [];
-          final lessons = lessonList.map((e) => LessonEntity.fromJson(e as Map<String, dynamic>)).toList();
-          chapters[i] = ChapterEntity(
-            id: chapters[i].id,
-            title: chapters[i].title,
-            description: chapters[i].description,
-            sortOrder: chapters[i].sortOrder,
-            lessons: lessons,
-          );
-        } catch (_) {}
+      for (int i = 0; i < chapters.length; i++) {
+        if (chapters[i].lessons.isEmpty) {
+          try {
+            final lessonRes = await _dio.get(ApiEndpoints.chapterLessons(chapters[i].id));
+            final lessonList = _unwrap(lessonRes) as List<dynamic>? ?? [];
+            final lessons = lessonList.map((e) => LessonEntity.fromJson(e as Map<String, dynamic>)).toList();
+            chapters[i] = ChapterEntity(
+              id: chapters[i].id,
+              title: chapters[i].title,
+              description: chapters[i].description,
+              sortOrder: chapters[i].sortOrder,
+              lessons: lessons,
+            );
+          } catch (_) {}
+        }
       }
+      return chapters;
+    } catch (_) {
+      return [];
     }
-    return chapters;
   }
 
   @override
@@ -209,9 +213,13 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Assignments
   @override
   Future<List<AssignmentEntity>> getClassAssignments(int classId) async {
-    final res = await _dio.get(ApiEndpoints.classAssignments(classId));
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => AssignmentEntity.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final res = await _dio.get(ApiEndpoints.classAssignments(classId));
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      return list.map((e) => AssignmentEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override
@@ -223,9 +231,13 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   @override
   Future<List<SubmissionEntity>> getAssignmentSubmissions(int assignmentId) async {
-    final res = await _dio.get(ApiEndpoints.assignmentSubmissions(assignmentId));
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => SubmissionEntity.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final res = await _dio.get(ApiEndpoints.assignmentSubmissions(assignmentId));
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      return list.map((e) => SubmissionEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override
@@ -249,16 +261,24 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Quizzes
   @override
   Future<List<QuizEntity>> getClassQuizzes(int classId) async {
-    final res = await _dio.get(ApiEndpoints.classQuizzes(classId));
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => QuizEntity.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final res = await _dio.get(ApiEndpoints.classQuizzes(classId));
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      return list.map((e) => QuizEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override
   Future<List<QuizQuestionEntity>> getQuizQuestions(int quizId) async {
-    final res = await _dio.get(ApiEndpoints.quizQuestions(quizId));
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => QuizQuestionEntity.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final res = await _dio.get(ApiEndpoints.quizQuestions(quizId));
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      return list.map((e) => QuizQuestionEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override
@@ -273,9 +293,13 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   // Forum
   @override
   Future<List<ForumPostEntity>> getClassForumPosts(int classId) async {
-    final res = await _dio.get(ApiEndpoints.classForumPosts(classId));
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => ForumPostEntity.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final res = await _dio.get(ApiEndpoints.classForumPosts(classId));
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      return list.map((e) => ForumPostEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override
@@ -314,9 +338,13 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   @override
   Future<List<AttendanceEntity>> getClassAttendance(int classId) async {
-    final res = await _dio.get(ApiEndpoints.classAttendance(classId));
-    final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => AttendanceEntity.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final res = await _dio.get(ApiEndpoints.classAttendance(classId));
+      final list = _unwrap(res) as List<dynamic>? ?? [];
+      return list.map((e) => AttendanceEntity.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override
