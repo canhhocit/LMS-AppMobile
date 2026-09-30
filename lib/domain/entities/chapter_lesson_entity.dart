@@ -32,6 +32,8 @@ class LessonEntity {
   final String title;
   final String? content;
   final String? videoUrl;
+  final String? attachmentUrl;
+  final String? attachmentName;
   final int duration;
   final int sortOrder;
   final bool isCompleted;
@@ -41,6 +43,8 @@ class LessonEntity {
     required this.title,
     this.content,
     this.videoUrl,
+    this.attachmentUrl,
+    this.attachmentName,
     this.duration = 0,
     required this.sortOrder,
     this.isCompleted = false,
@@ -52,6 +56,8 @@ class LessonEntity {
       title: json['title'] ?? '',
       content: json['content'],
       videoUrl: json['videoUrl'] ?? json['video_url'],
+      attachmentUrl: json['attachmentUrl'] ?? json['attachment_url'],
+      attachmentName: json['attachmentName'] ?? json['attachment_name'],
       duration: json['duration'] ?? 0,
       sortOrder: json['sortOrder'] ?? json['sort_order'] ?? 1,
       isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,

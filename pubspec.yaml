@@ -37,6 +37,7 @@ dependencies:
   mobile_scanner: ^5.2.3
   local_auth: ^2.3.0
   connectivity_plus: ^6.1.0
+  video_player: ^2.9.5
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/app_video_player.dart';
 import '../../domain/entities/chapter_lesson_entity.dart';
 import '../../domain/entities/assignment_entity.dart';
 import '../../domain/entities/quiz_entity.dart';
@@ -147,35 +149,35 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
         children: [
           // Active Video Header
           if (_activeLesson != null) ...[
-            Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Icon(Icons.play_circle_fill, size: 64, color: AppColors.primary),
-                  Positioned(
-                    bottom: 12,
-                    left: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(6)),
-                      child: Text(
-                        _activeLesson!.title,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+            if (_activeLesson!.videoUrl != null && _activeLesson!.videoUrl!.isNotEmpty)
+              AppVideoPlayer(
+                key: ValueKey(_activeLesson!.id),
+                videoUrl: _activeLesson!.videoUrl!,
+                title: _activeLesson!.title,
+              )
+            else
+              Container(
+                width: double.infinity,
+                height: 140,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.article_outlined, size: 44, color: AppColors.primary),
+                    const SizedBox(height: 8),
+                    Text(
+                      _activeLesson!.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    const Text('Bài học này không chứa video', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: 12),
             Card(
               child: Padding(
@@ -202,6 +204,44 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
                     if (_activeLesson!.content != null && _activeLesson!.content!.isNotEmpty) ...[
                       const Divider(),
                       Text(_activeLesson!.content!, style: AppTextStyles.body2),
+                    ],
+                    if (_activeLesson!.attachmentUrl != null && _activeLesson!.attachmentUrl!.isNotEmpty) ...[
+                      const Divider(),
+                      InkWell(
+                        onTap: () async {
+                          final uri = Uri.parse(_activeLesson!.attachmentUrl!);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.attach_file, color: AppColors.primary, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _activeLesson!.attachmentName ?? 'Tài liệu đi kèm bài học',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Icon(Icons.download, color: AppColors.primary, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ],
                 ),
