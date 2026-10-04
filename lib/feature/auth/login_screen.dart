@@ -7,6 +7,7 @@ import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/app_education_logo.dart';
 import '../../core/security/biometric_service.dart';
+import '../../data/session/session_manager.dart';
 import '../main_tab/main_tab_screen.dart';
 import 'login_cubit.dart';
 import 'login_state.dart';
@@ -157,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Thiết bị chưa thiết lập sinh trắc học!'),
+                                    content: Text('Thiết bị chưa thiết lập sinh trắc học hoặc phần cứng không hỗ trợ!'),
                                     backgroundColor: AppColors.warning,
                                   ),
                                 );
@@ -166,9 +167,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                             final authenticated = await biometricService.authenticateWithBiometrics();
                             if (authenticated && context.mounted) {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (_) => const MainTabScreen()),
-                              );
+                              final sessionManager = getIt<SessionManager>();
+                              final token = await sessionManager.getToken();
+                              final userJson = sessionManager.getUserJson();
+
+                              if ((token != null && token.isNotEmpty) || (userJson != null && userJson.isNotEmpty)) {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(builder: (_) => const MainTabScreen()),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Vui lòng đăng nhập tài khoản lần đầu bằng mật khẩu để liên kết Vân tay/FaceID!'),
+                                    backgroundColor: AppColors.info,
+                                  ),
+                                );
+                              }
                             }
                           },
                           icon: const Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 22),
