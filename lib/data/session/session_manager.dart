@@ -40,4 +40,23 @@ class SessionManager {
     await _secureStorage.delete(key: StorageKeys.refreshToken);
     await _prefs.remove(StorageKeys.userSession);
   }
+
+  Future<void> saveBiometricCredentials(String username, String password) async {
+    await _secureStorage.write(key: StorageKeys.biometricUsername, value: username);
+    await _secureStorage.write(key: StorageKeys.biometricPassword, value: password);
+  }
+
+  Future<Map<String, String>?> getBiometricCredentials() async {
+    final username = await _secureStorage.read(key: StorageKeys.biometricUsername);
+    final password = await _secureStorage.read(key: StorageKeys.biometricPassword);
+    if (username != null && password != null && username.isNotEmpty && password.isNotEmpty) {
+      return {'username': username, 'password': password};
+    }
+    return null;
+  }
+
+  Future<void> clearBiometricCredentials() async {
+    await _secureStorage.delete(key: StorageKeys.biometricUsername);
+    await _secureStorage.delete(key: StorageKeys.biometricPassword);
+  }
 }

@@ -34,6 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final entity = dto.toEntity();
       await sessionManager.saveUserJson(jsonEncode(entity.toJson()));
+      await sessionManager.saveBiometricCredentials(username, password);
 
       return entity;
     } on DioException catch (e) {

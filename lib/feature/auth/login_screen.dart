@@ -193,10 +193,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Navigator.of(context).pushReplacement(
                                   MaterialPageRoute(builder: (_) => const MainTabScreen()),
                                 );
+                                return;
+                              }
+
+                              final creds = await sessionManager.getBiometricCredentials();
+                              if (creds != null && creds['username'] != null && creds['password'] != null) {
+                                context.read<LoginCubit>().login(creds['username']!, creds['password']!);
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Vui lòng đăng nhập tài khoản lần đầu bằng mật khẩu để liên kết Vân tay/FaceID!'),
+                                    content: Text('Chưa có thông tin đăng nhập được lưu. Vui lòng đăng nhập bằng mật khẩu một lần để kích hoạt Vân tay/FaceID!'),
                                     backgroundColor: AppColors.info,
                                   ),
                                 );
