@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/constants/storage_keys.dart';
 import '../../core/di/service_locator.dart';
+import '../../core/security/biometric_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/app_avatar.dart';
@@ -21,6 +24,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   UserEntity? _user;
   bool _isLoading = true;
+  bool _enableFingerprint = true;
+  bool _enableFaceId = true;
+  bool _isBiometricSupported = false;
 
   @override
   void initState() {
@@ -31,11 +37,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
     final user = await getIt<AuthRepository>().getCurrentUser();
+    final prefs = getIt<SharedPreferences>();
+    final biometricService = BiometricService();
+    final isSupported = await biometricService.isBiometricAvailable();
+
     if (mounted) {
       setState(() {
         _user = user;
+        _isBiometricSupported = isSupported;
+        _enableFingerprint = prefs.getBool(StorageKeys.enableFingerprint) ?? true;
+        _enableFaceId = prefs.getBool(StorageKeys.enableFaceId) ?? true;
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _toggleFingerprint(bool value) async {
+    if (value && _isBiometricSupported) {
+      final biometricService = BiometricService();
+      final authenticated = await biometricService.authenticateFingerprint();
+      if (!authenticated) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Xác thực vân tay không thành công. Không thể bật chế độ này!'),
+              backgroundColor: AppColors.warning,
+            ),
+          );
+        }
+        return;
+      }
+    }
+    final prefs = getIt<SharedPreferences>();
+    await prefs.setBool(StorageKeys.enableFingerprint, value);
+    if (mounted) {
+      setState(() => _enableFingerprint = value);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(value ? 'Đã bật đăng nhập bằng Vân tay!' : 'Đã tắt đăng nhập bằng Vân tay.'),
+          backgroundColor: value ? AppColors.success : AppColors.info,
+        ),
+      );
+    }
+  }
+
+  Future<void> _toggleFaceId(bool value) async {
+    if (value && _isBiometricSupported) {
+      final biometricService = BiometricService();
+      final authenticated = await biometricService.authenticateFaceId();
+      if (!authenticated) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Xác thực FaceID không thành công. Không thể bật chế độ này!'),
+              backgroundColor: AppColors.warning,
+            ),
+          );
+        }
+        return;
+      }
+    }
+    final prefs = getIt<SharedPreferences>();
+    await prefs.setBool(StorageKeys.enableFaceId, value);
+    if (mounted) {
+      setState(() => _enableFaceId = value);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(value ? 'Đã bật đăng nhập bằng FaceID!' : 'Đã tắt đăng nhập bằng FaceID.'),
+          backgroundColor: value ? AppColors.success : AppColors.info,
+        ),
+      );
     }
   }
 
@@ -278,6 +349,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: Text('Đổi mật khẩu', style: AppTextStyles.body1.copyWith(fontSize: 14)),
                     trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
                     onTap: _showChangePasswordDialog,
+                  ),
+                  const Divider(height: 1, indent: 48),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.fingerprint_rounded, color: AppColors.primary),
+                    title: Text('Đăng nhập bằng Vân tay', style: AppTextStyles.body1.copyWith(fontSize: 14)),
+                    subtitle: Text(
+                      _isBiometricSupported
+                          ? (_enableFingerprint ? 'Đã bật' : 'Đang tắt')
+                          : 'Thiết bị chưa thiết lập hoặc không hỗ trợ',
+                      style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+                    ),
+                    value: _enableFingerprint && _isBiometricSupported,
+                    onChanged: _isBiometricSupported ? (val) => _toggleFingerprint(val) : null,
+                  ),
+                  const Divider(height: 1, indent: 48),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.face_rounded, color: AppColors.primary),
+                    title: Text('Đăng nhập bằng FaceID / Khuôn mặt', style: AppTextStyles.body1.copyWith(fontSize: 14)),
+                    subtitle: Text(
+                      _isBiometricSupported
+                          ? (_enableFaceId ? 'Đã bật' : 'Đang tắt')
+                          : 'Thiết bị chưa thiết lập hoặc không hỗ trợ',
+                      style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+                    ),
+                    value: _enableFaceId && _isBiometricSupported,
+                    onChanged: _isBiometricSupported ? (val) => _toggleFaceId(val) : null,
                   ),
                 ],
               ),

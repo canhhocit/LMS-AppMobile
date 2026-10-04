@@ -14,10 +14,18 @@ class BiometricService {
     }
   }
 
-  Future<bool> authenticateWithBiometrics() async {
+  Future<List<BiometricType>> getAvailableBiometrics() async {
+    try {
+      return await _auth.getAvailableBiometrics();
+    } on PlatformException catch (_) {
+      return [];
+    }
+  }
+
+  Future<bool> authenticateWithBiometrics({String? customReason}) async {
     try {
       return await _auth.authenticate(
-        localizedReason: 'Vui lòng quét vân tay hoặc khuôn mặt để xác thực đăng nhập LearningHub LMS',
+        localizedReason: customReason ?? 'Vui lòng xác thực sinh trắc học để đăng nhập LearningHub LMS',
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: true,
@@ -26,5 +34,17 @@ class BiometricService {
     } on PlatformException catch (_) {
       return false;
     }
+  }
+
+  Future<bool> authenticateFingerprint() async {
+    return authenticateWithBiometrics(
+      customReason: 'Vui lòng quét dấu vân tay để xác thực tài khoản LearningHub LMS',
+    );
+  }
+
+  Future<bool> authenticateFaceId() async {
+    return authenticateWithBiometrics(
+      customReason: 'Vui lòng quét khuôn mặt (Face ID) để xác thực tài khoản LearningHub LMS',
+    );
   }
 }

@@ -20,5 +20,7 @@ class StorageKeys {
   static const String aiChatHistory = 'ai_chat_history';
   static const String showAiFloatingButton = 'show_ai_floating_button';
   static const String avatarTheme = 'avatar_theme';
+  static const String enableFingerprint = 'enable_fingerprint';
+  static const String enableFaceId = 'enable_face_id';
 }
 
