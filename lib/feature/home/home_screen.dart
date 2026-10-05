@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
         studentRepository: getIt(),
       )..loadDashboard(),
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.backgroundColor(context),
         body: SafeArea(
           child: BlocBuilder<HomeCubit, HomeState>(
             builder: (context, state) {
@@ -120,12 +120,12 @@ class HomeScreen extends StatelessWidget {
                           ),
                           Container(
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: AppColors.surfaceColor(context),
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(color: AppColors.borderColor(context)),
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
+                              icon: Icon(Icons.notifications_none_rounded, color: AppColors.textPrimaryColor(context)),
                               onPressed: () {
                                 if (onNavigateTab != null) {
                                   onNavigateTab!(3);
@@ -372,7 +372,7 @@ class HomeScreen extends StatelessWidget {
                                           width: 44,
                                           height: 44,
                                           decoration: BoxDecoration(
-                                            color: AppColors.primaryBackground,
+                                            color: AppColors.primaryBgColor(context),
                                             borderRadius: BorderRadius.circular(10),
                                           ),
                                           child: const Icon(
@@ -441,9 +441,9 @@ class HomeScreen extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surfaceColor(context),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.borderColor(context)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.02),

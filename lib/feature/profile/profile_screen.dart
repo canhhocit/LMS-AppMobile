@@ -273,7 +273,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBackground,
+                      color: AppColors.primaryBgColor(context),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(

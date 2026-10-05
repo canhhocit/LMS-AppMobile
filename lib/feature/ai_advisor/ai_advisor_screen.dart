@@ -214,14 +214,14 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
                           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: msg.isUser ? AppColors.primary : Colors.white,
+                            color: msg.isUser ? AppColors.primary : AppColors.surfaceColor(context),
                             borderRadius: BorderRadius.circular(14),
-                            border: msg.isUser ? null : Border.all(color: AppColors.border),
+                            border: msg.isUser ? null : Border.all(color: AppColors.borderColor(context)),
                           ),
                           child: Text(
                             msg.text,
                             style: TextStyle(
-                              color: msg.isUser ? Colors.white : AppColors.textPrimary,
+                              color: msg.isUser ? Colors.white : AppColors.textPrimaryColor(context),
                               fontSize: 14,
                               height: 1.4,
                             ),

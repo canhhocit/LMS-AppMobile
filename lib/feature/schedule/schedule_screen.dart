@@ -65,7 +65,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBackground,
+                      color: AppColors.primaryBgColor(context),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(Icons.school_outlined, color: AppColors.primary, size: 28),

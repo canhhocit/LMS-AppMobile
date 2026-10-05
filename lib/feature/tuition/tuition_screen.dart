@@ -98,9 +98,9 @@ class _TuitionScreenState extends State<TuitionScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryBackground,
+                        color: AppColors.primaryBgColor(context),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: AppColors.borderColor(context)),
                       ),
                       child: Column(
                         children: [
@@ -123,9 +123,9 @@ class _TuitionScreenState extends State<TuitionScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.surfaceColor(context),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(color: AppColors.borderColor(context)),
                             ),
                             child: Text(
                               'Nội dung: ${payOSData!.description}',

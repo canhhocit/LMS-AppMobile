@@ -86,7 +86,7 @@ class _MainTabScreenState extends State<MainTabScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex < pages.length ? _currentIndex : 0,
         onDestinationSelected: _onTabTapped,
-        indicatorColor: AppColors.primaryBackground,
+        indicatorColor: AppColors.primaryBgColor(context),
         height: 64,
         destinations: const [
           NavigationDestination(
