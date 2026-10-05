@@ -44,19 +44,22 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   void _showQrCheckInDialog() {
     final otpController = TextEditingController();
-    int? selectedClassId = _summaries.isNotEmpty ? _summaries.first.classId : null;
+    int? selectedClassId =
+        _summaries.isNotEmpty ? _summaries.first.classId : null;
     bool isSubmitting = false;
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: const [
               Icon(Icons.qr_code_scanner_rounded, color: AppColors.primary),
               SizedBox(width: 8),
-              Text('Điểm danh QR / OTP', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('Điểm danh QR / OTP',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
           content: SingleChildScrollView(
@@ -64,18 +67,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Attendance session payload:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const Text('Attendance session payload:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<int>(
                   value: selectedClassId,
-                  items: _summaries.map((s) => DropdownMenuItem<int>(
-                    value: s.classId,
-                    child: Text('${s.classCode} - ${s.className}', overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
-                  )).toList(),
-                  onChanged: (val) => setDialogState(() => selectedClassId = val),
+                  items: _summaries
+                      .map((s) => DropdownMenuItem<int>(
+                            value: s.classId,
+                            child: Text('${s.classCode} - ${s.className}',
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 13)),
+                          ))
+                      .toList(),
+                  onChanged: (val) =>
+                      setDialogState(() => selectedClassId = val),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -90,15 +101,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       setDialogState(() {});
                     }
                   },
-                  icon: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
+                  icon: const Icon(Icons.camera_alt_outlined,
+                      color: AppColors.primary),
                   label: const Text('Scan the attendance QR code'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Attendance session payload:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const Text('Attendance session payload:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: otpController,
@@ -106,7 +121,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   maxLength: 100,
                   readOnly: true,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 22, letterSpacing: 8, fontWeight: FontWeight.bold, color: AppColors.primary),
+                  style: const TextStyle(
+                      fontSize: 22,
+                      letterSpacing: 8,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary),
                   decoration: const InputDecoration(
                     hintText: '123456',
                     border: OutlineInputBorder(),
@@ -124,14 +143,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             ),
             ElevatedButton.icon(
               icon: isSubmitting
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.check_circle_rounded, size: 18),
               label: Text(isSubmitting ? 'Đang gửi...' : 'Xác nhận Điểm danh'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: isSubmitting || selectedClassId == null
                   ? null
@@ -139,22 +164,30 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       final otp = otpController.text.trim();
                       if (!otp.startsWith('LEARNINGHUB_QR|')) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Vui lòng nhập đủ 6 chữ số OTP!'), backgroundColor: AppColors.warning),
+                          const SnackBar(
+                              content: Text('Vui lòng nhập đủ 6 chữ số OTP!'),
+                              backgroundColor: AppColors.warning),
                         );
                         return;
                       }
                       setDialogState(() => isSubmitting = true);
-                      final ok = await _repo.submitQrAttendance(selectedClassId!, otp);
+                      final ok =
+                          await _repo.submitQrAttendance(selectedClassId!, otp);
                       if (mounted) {
                         Navigator.pop(ctx);
                         if (ok) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Điểm danh QR thành công!'), backgroundColor: AppColors.success),
+                            const SnackBar(
+                                content: Text('Điểm danh QR thành công!'),
+                                backgroundColor: AppColors.success),
                           );
                           _loadAttendance();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Mã OTP không hợp lệ hoặc đã hết hạn!'), backgroundColor: AppColors.error),
+                            const SnackBar(
+                                content: Text(
+                                    'Mã OTP không hợp lệ hoặc đã hết hạn!'),
+                                backgroundColor: AppColors.error),
                           );
                         }
                       }
@@ -178,7 +211,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         onPressed: _showQrCheckInDialog,
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white),
-        label: const Text('Quét QR Check-in', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: const Text('Quét QR Check-in',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: _isLoading
           ? AppSkeleton.listLoader(count: 3, height: 140)
@@ -187,7 +221,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               child: _summaries.isEmpty
                   ? const AppEmptyState(
                       title: 'Chưa có dữ liệu điểm danh',
-                      subtitle: 'Lịch sử điểm danh các môn học sẽ được thống kê tại đây.',
+                      subtitle:
+                          'Lịch sử điểm danh các môn học sẽ được thống kê tại đây.',
                       icon: Icons.fact_check_outlined,
                     )
                   : ListView.builder(
@@ -195,9 +230,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       itemCount: _summaries.length,
                       itemBuilder: (context, idx) {
                         final s = _summaries[idx];
-                        final ratioPct = (s.absentRatio * 100).toStringAsFixed(1);
+                        final ratioPct =
+                            (s.absentRatio * 100).toStringAsFixed(1);
                         final isWarning = s.absentRatio >= 0.2;
-                        final totalLessons = s.presentCount + s.lateCount + s.absentCount;
+                        final totalLessons =
+                            s.presentCount + s.lateCount + s.absentCount;
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -208,36 +245,51 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Text(s.className, style: AppTextStyles.h3.copyWith(fontSize: 16)),
+                                      child: Text(s.className,
+                                          style: AppTextStyles.h3
+                                              .copyWith(fontSize: 16)),
                                     ),
                                     AppBadge(
                                       text: 'Vắng: $ratioPct%',
-                                      variant: isWarning ? AppBadgeVariant.error : AppBadgeVariant.success,
+                                      variant: isWarning
+                                          ? AppBadgeVariant.error
+                                          : AppBadgeVariant.success,
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
-                                Text('Mã lớp: ${s.classCode}', style: AppTextStyles.body2),
+                                Text('Mã lớp: ${s.classCode}',
+                                    style: AppTextStyles.body2),
                                 const SizedBox(height: 16),
                                 // Attendance Progress Bar
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(4),
                                   child: LinearProgressIndicator(
-                                    value: totalLessons > 0 ? (s.presentCount + s.lateCount) / totalLessons : 1.0,
-                                    backgroundColor: AppColors.error.withOpacity(0.2),
+                                    value: totalLessons > 0
+                                        ? (s.presentCount + s.lateCount) /
+                                            totalLessons
+                                        : 1.0,
+                                    backgroundColor:
+                                        AppColors.error.withOpacity(0.2),
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      isWarning ? AppColors.warning : AppColors.success,
+                                      isWarning
+                                          ? AppColors.warning
+                                          : AppColors.success,
                                     ),
                                     minHeight: 8,
                                   ),
                                 ),
                                 const SizedBox(height: 16),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
                                   children: [
-                                    _buildStatBox('Có mặt', '${s.presentCount}', AppColors.success),
-                                    _buildStatBox('Đi muộn', '${s.lateCount}', AppColors.warning),
-                                    _buildStatBox('Vắng mặt', '${s.absentCount}', AppColors.error),
+                                    _buildStatBox('Có mặt', '${s.presentCount}',
+                                        AppColors.success),
+                                    _buildStatBox('Đi muộn', '${s.lateCount}',
+                                        AppColors.warning),
+                                    _buildStatBox('Vắng mặt',
+                                        '${s.absentCount}', AppColors.error),
                                   ],
                                 ),
                                 if (isWarning) ...[
@@ -250,12 +302,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                     ),
                                     child: Row(
                                       children: const [
-                                        Icon(Icons.warning_amber_rounded, color: AppColors.badgeRedText, size: 18),
+                                        Icon(Icons.warning_amber_rounded,
+                                            color: AppColors.badgeRedText,
+                                            size: 18),
                                         SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             'Cảnh báo: Tỷ lệ vắng mặt vượt quá 20%. Bạn có nguy cơ không được tham dự thi kết thúc học phần!',
-                                            style: TextStyle(color: AppColors.badgeRedText, fontSize: 11, fontWeight: FontWeight.w600),
+                                            style: TextStyle(
+                                                color: AppColors.badgeRedText,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600),
                                           ),
                                         ),
                                       ],
@@ -275,7 +332,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget _buildStatBox(String label, String val, Color color) {
     return Column(
       children: [
-        Text(val, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+        Text(val,
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: color)),
         const SizedBox(height: 2),
         Text(label, style: AppTextStyles.caption),
       ],

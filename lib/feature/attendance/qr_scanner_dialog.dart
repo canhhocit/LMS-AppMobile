@@ -79,21 +79,27 @@ class _QrScannerDialogState extends State<QrScannerDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                      icon: const Icon(Icons.close,
+                          color: Colors.white, size: 28),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const Text(
                       'Quét mã QR Điểm danh',
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
                     ),
                     IconButton(
                       icon: ValueListenableBuilder(
                         valueListenable: _controller,
                         builder: (context, state, child) {
                           if (state.torchState == TorchState.on) {
-                            return const Icon(Icons.flash_on, color: Colors.yellow);
+                            return const Icon(Icons.flash_on,
+                                color: Colors.yellow);
                           }
-                          return const Icon(Icons.flash_off, color: Colors.white);
+                          return const Icon(Icons.flash_off,
+                              color: Colors.white);
                         },
                       ),
                       onPressed: () => _controller.toggleTorch(),
@@ -107,7 +113,8 @@ class _QrScannerDialogState extends State<QrScannerDialog> {
                 left: 20,
                 right: 20,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(12),

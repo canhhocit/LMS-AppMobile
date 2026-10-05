@@ -23,7 +23,8 @@ import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/student_repository.dart';
 import '../session/session_manager.dart';
 
-class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentRepository {
+class LmsRepositoryImpl
+    implements LmsRepository, AuthRepository, StudentRepository {
   final DioClient dioClient;
   final SessionManager sessionManager;
 
@@ -48,7 +49,7 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     });
     final result = _unwrap(res);
     final user = UserEntity.fromJson(result as Map<String, dynamic>);
-    
+
     if (user.token != null) {
       await sessionManager.saveTokens(
         token: user.token!,
@@ -91,7 +92,8 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   }
 
   @override
-  Future<UserEntity> updateProfile({String? personalEmail, String? fullName, String? avatarUrl}) async {
+  Future<UserEntity> updateProfile(
+      {String? personalEmail, String? fullName, String? avatarUrl}) async {
     final currentUser = await getCurrentUser();
     final res = await _dio.put(ApiEndpoints.studentProfile, data: {
       'fullName': fullName ?? currentUser?.fullName ?? '',
@@ -114,38 +116,52 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   // StudentRepository & LmsRepository
   @override
-  Future<List<CourseClassEntity>> getMyClasses([bool isLecturer = false]) async {
+  Future<List<CourseClassEntity>> getMyClasses(
+      [bool isLecturer = false]) async {
     final cacheKey = 'cache_my_classes_${isLecturer ? "lec" : "stu"}';
     try {
-      final endpoint = isLecturer ? ApiEndpoints.lecturerClasses : ApiEndpoints.studentClasses;
+      final endpoint = isLecturer
+          ? ApiEndpoints.lecturerClasses
+          : ApiEndpoints.studentClasses;
       final res = await _dio.get(endpoint);
       final list = _unwrap(res) as List<dynamic>? ?? [];
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((e) => CourseClassEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => CourseClassEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((e) => CourseClassEntity.fromJson(e as Map<String, dynamic>)).toList();
+        return list
+            .map((e) => CourseClassEntity.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       return [];
     }
   }
 
   @override
-  Future<List<ScheduleItemEntity>> getMySchedule([bool isLecturer = false]) async {
+  Future<List<ScheduleItemEntity>> getMySchedule(
+      [bool isLecturer = false]) async {
     final cacheKey = 'cache_my_schedule_${isLecturer ? "lec" : "stu"}';
     try {
-      final endpoint = isLecturer ? ApiEndpoints.lecturerSchedule : ApiEndpoints.studentSchedule;
+      final endpoint = isLecturer
+          ? ApiEndpoints.lecturerSchedule
+          : ApiEndpoints.studentSchedule;
       final res = await _dio.get(endpoint);
       final list = _unwrap(res) as List<dynamic>? ?? [];
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((e) => ScheduleItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => ScheduleItemEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((e) => ScheduleItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+        return list
+            .map((e) => ScheduleItemEntity.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       return [];
     }
@@ -170,7 +186,8 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   @override
   Future<bool> verifyPayOSPayment(int invoiceId) async {
-    final response = await _dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
+    final response =
+        await _dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
     final invoice = _unwrap(response) as Map<String, dynamic>;
     return invoice['status'] == 'PAID';
   }
@@ -192,14 +209,19 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     try {
       final res = await _dio.get(ApiEndpoints.classChapters(classId));
       final list = _unwrap(res) as List<dynamic>? ?? [];
-      final chapters = list.map((e) => ChapterEntity.fromJson(e as Map<String, dynamic>)).toList();
+      final chapters = list
+          .map((e) => ChapterEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
 
       for (int i = 0; i < chapters.length; i++) {
         if (chapters[i].lessons.isEmpty) {
           try {
-            final lessonRes = await _dio.get(ApiEndpoints.chapterLessons(chapters[i].id));
+            final lessonRes =
+                await _dio.get(ApiEndpoints.chapterLessons(chapters[i].id));
             final lessonList = _unwrap(lessonRes) as List<dynamic>? ?? [];
-            final lessons = lessonList.map((e) => LessonEntity.fromJson(e as Map<String, dynamic>)).toList();
+            final lessons = lessonList
+                .map((e) => LessonEntity.fromJson(e as Map<String, dynamic>))
+                .toList();
             chapters[i] = ChapterEntity(
               id: chapters[i].id,
               title: chapters[i].title,
@@ -218,7 +240,8 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   @override
   Future<void> markLessonProgress(int lessonId, bool completed) async {
-    await _dio.post(ApiEndpoints.markLessonProgress(lessonId), queryParameters: {'completed': completed});
+    await _dio.post(ApiEndpoints.markLessonProgress(lessonId),
+        queryParameters: {'completed': completed});
   }
 
   // Assignments
@@ -227,7 +250,9 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     try {
       final res = await _dio.get(ApiEndpoints.classAssignments(classId));
       final list = _unwrap(res) as List<dynamic>? ?? [];
-      return list.map((e) => AssignmentEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => AssignmentEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }
@@ -241,18 +266,23 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   }
 
   @override
-  Future<List<SubmissionEntity>> getAssignmentSubmissions(int assignmentId) async {
+  Future<List<SubmissionEntity>> getAssignmentSubmissions(
+      int assignmentId) async {
     try {
-      final res = await _dio.get(ApiEndpoints.assignmentSubmissions(assignmentId));
+      final res =
+          await _dio.get(ApiEndpoints.assignmentSubmissions(assignmentId));
       final list = _unwrap(res) as List<dynamic>? ?? [];
-      return list.map((e) => SubmissionEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => SubmissionEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }
   }
 
   @override
-  Future<void> gradeSubmission(int submissionId, double score, String feedback) async {
+  Future<void> gradeSubmission(
+      int submissionId, double score, String feedback) async {
     await _dio.post(ApiEndpoints.gradeSubmission(submissionId), data: {
       'score': score,
       'feedback': feedback,
@@ -260,7 +290,8 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   }
 
   @override
-  Future<void> createAssignment(int classId, String title, String description, String dueDate, double maxScore) async {
+  Future<void> createAssignment(int classId, String title, String description,
+      String dueDate, double maxScore) async {
     await _dio.post(ApiEndpoints.classAssignments(classId), data: {
       'title': title,
       'description': description,
@@ -275,7 +306,9 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     try {
       final res = await _dio.get(ApiEndpoints.classQuizzes(classId));
       final list = _unwrap(res) as List<dynamic>? ?? [];
-      return list.map((e) => QuizEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => QuizEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }
@@ -286,19 +319,24 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     try {
       final res = await _dio.get(ApiEndpoints.quizQuestions(quizId));
       final list = _unwrap(res) as List<dynamic>? ?? [];
-      return list.map((e) => QuizQuestionEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => QuizQuestionEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }
   }
 
   @override
-  Future<QuizAttemptEntity> submitQuizAttempt(int quizId, Map<int, String> answers) async {
+  Future<QuizAttemptEntity> submitQuizAttempt(
+      int quizId, Map<int, String> answers) async {
     final res = await _dio.post(ApiEndpoints.submitQuizAttempt(quizId), data: {
-      'answers': answers.entries.map((entry) => {
-        'questionId': entry.key,
-        'selectedAnswer': entry.value,
-      }).toList(),
+      'answers': answers.entries
+          .map((entry) => {
+                'questionId': entry.key,
+                'selectedAnswer': entry.value,
+              })
+          .toList(),
     });
     final result = _unwrap(res);
     return QuizAttemptEntity.fromJson(result as Map<String, dynamic>);
@@ -315,14 +353,17 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     try {
       final res = await _dio.get(ApiEndpoints.classForumPosts(classId));
       final list = _unwrap(res) as List<dynamic>? ?? [];
-      return list.map((e) => ForumPostEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => ForumPostEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }
   }
 
   @override
-  Future<void> createForumPost(int classId, String title, String content) async {
+  Future<void> createForumPost(
+      int classId, String title, String content) async {
     await _dio.post(ApiEndpoints.classForumPosts(classId), data: {
       'title': title,
       'content': content,
@@ -343,9 +384,13 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     try {
       final classes = await getMyClasses();
       final list = await Future.wait(classes.map((courseClass) async {
-        final response = await _dio.get(ApiEndpoints.myClassAttendance(courseClass.id));
+        final response =
+            await _dio.get(ApiEndpoints.myClassAttendance(courseClass.id));
         final records = _unwrap(response) as List<dynamic>? ?? [];
-        final statuses = records.map((record) => (record as Map<String, dynamic>)['status']?.toString()).toList();
+        final statuses = records
+            .map((record) =>
+                (record as Map<String, dynamic>)['status']?.toString())
+            .toList();
         final present = statuses.where((status) => status == 'PRESENT').length;
         final late = statuses.where((status) => status == 'LATE').length;
         final absent = statuses.where((status) => status == 'ABSENT').length;
@@ -361,12 +406,18 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
         };
       }));
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((e) => StudentAttendanceSummary.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) =>
+              StudentAttendanceSummary.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((e) => StudentAttendanceSummary.fromJson(e as Map<String, dynamic>)).toList();
+        return list
+            .map((e) =>
+                StudentAttendanceSummary.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       return [];
     }
@@ -377,13 +428,16 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     try {
       final currentUser = await getCurrentUser();
       final response = currentUser?.isLecturer == true
-          ? await _dio.get(ApiEndpoints.classAttendance(classId), queryParameters: {
+          ? await _dio
+              .get(ApiEndpoints.classAttendance(classId), queryParameters: {
               'date': DateTime.now().toIso8601String().substring(0, 10),
             })
           : await _dio.get(ApiEndpoints.myClassAttendance(classId));
       final res = response;
       final list = _unwrap(res) as List<dynamic>? ?? [];
-      return list.map((e) => AttendanceEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => AttendanceEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }
@@ -397,7 +451,8 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   }
 
   @override
-  Future<void> markClassAttendance(int classId, String date, List<Map<String, dynamic>> records) async {
+  Future<void> markClassAttendance(
+      int classId, String date, List<Map<String, dynamic>> records) async {
     await _dio.post(ApiEndpoints.markAttendance(classId), data: {
       'attendanceDate': date,
       'records': records,
@@ -408,7 +463,9 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   Future<bool> submitQrAttendance(int classId, String otpToken) async {
     try {
       final parts = otpToken.split('|');
-      if (parts.length != 4 || parts[0] != 'LEARNINGHUB_QR' || int.tryParse(parts[3]) != classId) return false;
+      if (parts.length != 4 ||
+          parts[0] != 'LEARNINGHUB_QR' ||
+          int.tryParse(parts[3]) != classId) return false;
       await _dio.post('/attendance/qr/check-in', data: {
         'sessionToken': parts[1],
         'otpCode': parts[2],
@@ -427,12 +484,16 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
       final res = await _dio.get(ApiEndpoints.studentGrades);
       final list = _unwrap(res) as List<dynamic>? ?? [];
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((e) => GradeEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => GradeEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((e) => GradeEntity.fromJson(e as Map<String, dynamic>)).toList();
+        return list
+            .map((e) => GradeEntity.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       return [];
     }
@@ -446,7 +507,8 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   }
 
   @override
-  Future<void> updateStudentGrade(int classId, int studentId, double? midterm, double? finalScore) async {
+  Future<void> updateStudentGrade(
+      int classId, int studentId, double? midterm, double? finalScore) async {
     await _dio.post(ApiEndpoints.updateStudentGrade(classId, studentId), data: {
       'studentId': studentId,
       'midtermScore': midterm,
@@ -476,7 +538,9 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   Future<List<AvailableClassEntity>> getAvailableClasses() async {
     final res = await _dio.get(ApiEndpoints.availableCourseClasses);
     final list = _unwrap(res) as List<dynamic>? ?? [];
-    return list.map((e) => AvailableClassEntity.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => AvailableClassEntity.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override
@@ -496,14 +560,20 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
     try {
       final res = await _dio.get(ApiEndpoints.notifications);
       final result = _unwrap(res);
-      final List list = result is Map ? (result['content'] ?? []) : (result is List ? result : []);
+      final List list = result is Map
+          ? (result['content'] ?? [])
+          : (result is List ? result : []);
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>)).toList();
+        return list
+            .map((e) => NotificationEntity.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       return [];
     }
@@ -537,14 +607,16 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
       final prefs = await SharedPreferences.getInstance();
       final aiName = prefs.getString(StorageKeys.aiName) ?? 'Hikari AI';
       final toneStyle = prefs.getString(StorageKeys.toneStyle) ?? 'FRIENDLY';
-      final customPrompt = prefs.getString(StorageKeys.customPrompt) ?? 'Đóng vai Cố vấn Học tập 24/7, đưa ra câu trả lời ngắn gọn, tạo động lực học tập.';
+      final customPrompt = prefs.getString(StorageKeys.customPrompt) ??
+          'Đóng vai Cố vấn Học tập 24/7, đưa ra câu trả lời ngắn gọn, tạo động lực học tập.';
       final targetGoal = prefs.getString(StorageKeys.targetGoal) ?? '3.6';
 
       final userJson = sessionManager.getUserJson();
       UserEntity? user;
       if (userJson != null && userJson.isNotEmpty) {
         try {
-          user = UserEntity.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+          user =
+              UserEntity.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
         } catch (_) {}
       }
       final userRoleStr = user?.isLecturer == true ? 'GIẢNG VIÊN' : 'SINH VIÊN';
@@ -557,16 +629,25 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
       List<TuitionItemEntity> tuitionList = [];
 
       await Future.wait([
-        getMySchedule().then((val) => scheduleList = val).catchError((_) => <ScheduleItemEntity>[]),
-        getMyGrades().then((val) => gradeList = val).catchError((_) => <GradeEntity>[]),
-        getMyClasses().then((val) => classList = val).catchError((_) => <CourseClassEntity>[]),
-        getTuitionInvoices().then((val) => tuitionList = val).catchError((_) => <TuitionItemEntity>[]),
+        getMySchedule()
+            .then((val) => scheduleList = val)
+            .catchError((_) => <ScheduleItemEntity>[]),
+        getMyGrades()
+            .then((val) => gradeList = val)
+            .catchError((_) => <GradeEntity>[]),
+        getMyClasses()
+            .then((val) => classList = val)
+            .catchError((_) => <CourseClassEntity>[]),
+        getTuitionInvoices()
+            .then((val) => tuitionList = val)
+            .catchError((_) => <TuitionItemEntity>[]),
       ]);
 
       // 1. Build Schedule context
       final now = DateTime.now();
       final todayWeekday = now.weekday; // 1 = Mon, 7 = Sun
-      final todaySchedule = scheduleList.where((s) => s.dayOfWeek == todayWeekday).toList();
+      final todaySchedule =
+          scheduleList.where((s) => s.dayOfWeek == todayWeekday).toList();
       String scheduleContext;
       if (scheduleList.isEmpty) {
         scheduleContext = 'Chưa có lịch học nào.';
@@ -574,8 +655,14 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
         final todayStr = todaySchedule.isEmpty
             ? 'Hôm nay (Thứ $todayWeekday, ${now.day}/${now.month}/${now.year}): Không có tiết học nào.'
             : 'Hôm nay (Thứ $todayWeekday, ${now.day}/${now.month}/${now.year}):\n' +
-                todaySchedule.map((s) => '  + ${s.courseName} (${s.classCode}): ${s.timeSlot}, Phòng ${s.room}, GV: ${s.teacherName}').join('\n');
-        final allStr = scheduleList.map((s) => '  + Thứ ${s.dayOfWeek}: ${s.courseName} (${s.timeSlot}, Phòng: ${s.room}, GV: ${s.teacherName})').join('\n');
+                todaySchedule
+                    .map((s) =>
+                        '  + ${s.courseName} (${s.classCode}): ${s.timeSlot}, Phòng ${s.room}, GV: ${s.teacherName}')
+                    .join('\n');
+        final allStr = scheduleList
+            .map((s) =>
+                '  + Thứ ${s.dayOfWeek}: ${s.courseName} (${s.timeSlot}, Phòng: ${s.room}, GV: ${s.teacherName})')
+            .join('\n');
         scheduleContext = '$todayStr\nLịch toàn tuần:\n$allStr';
       }
 
@@ -592,26 +679,36 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
             totalSum += g.overallGrade!;
             count++;
           }
-          lines.add('  + ${g.courseName} (${g.courseCode}): Điểm tổng kết ${g.overallGrade ?? "Chưa nhập"} (${g.letterGrade ?? "-"})');
+          lines.add(
+              '  + ${g.courseName} (${g.courseCode}): Điểm tổng kết ${g.overallGrade ?? "Chưa nhập"} (${g.letterGrade ?? "-"})');
         }
         final gpa10 = count > 0 ? (totalSum / count) : 0.0;
         final gpa4 = (gpa10 / 10.0) * 4.0;
-        gradesContext = 'GPA Tích lũy: ${gpa10.toStringAsFixed(2)}/10 (${gpa4.toStringAsFixed(2)}/4.0)\nChi tiết môn học:\n${lines.join("\n")}';
+        gradesContext =
+            'GPA Tích lũy: ${gpa10.toStringAsFixed(2)}/10 (${gpa4.toStringAsFixed(2)}/4.0)\nChi tiết môn học:\n${lines.join("\n")}';
       }
 
       // 3. Build Classes context
       String classesContext = classList.isEmpty
           ? 'Chưa đăng ký lớp học phần nào.'
-          : classList.map((c) => '  + ${c.courseTitle} (Mã: ${c.classCode}) - GV: ${c.lecturerName ?? "Chưa phân công"}').join('\n');
+          : classList
+              .map((c) =>
+                  '  + ${c.courseTitle} (Mã: ${c.classCode}) - GV: ${c.lecturerName ?? "Chưa phân công"}')
+              .join('\n');
 
       // 4. Build Tuition context
       String tuitionContext;
       if (tuitionList.isEmpty) {
         tuitionContext = 'Không có nợ học phí.';
       } else {
-        final unpaid = tuitionList.fold(0.0, (sum, t) => sum + t.remainingAmount);
-        tuitionContext = 'Tổng nợ học phí hiện tại: ${unpaid.toStringAsFixed(0)} VNĐ\nChi tiết:\n' +
-            tuitionList.map((t) => '  + HK ${t.semester}: Đã nộp ${t.paidAmount.toStringAsFixed(0)} VNĐ, Còn thiếu ${t.remainingAmount.toStringAsFixed(0)} VNĐ (${t.status})').join('\n');
+        final unpaid =
+            tuitionList.fold(0.0, (sum, t) => sum + t.remainingAmount);
+        tuitionContext =
+            'Tổng nợ học phí hiện tại: ${unpaid.toStringAsFixed(0)} VNĐ\nChi tiết:\n' +
+                tuitionList
+                    .map((t) =>
+                        '  + HK ${t.semester}: Đã nộp ${t.paidAmount.toStringAsFixed(0)} VNĐ, Còn thiếu ${t.remainingAmount.toStringAsFixed(0)} VNĐ (${t.status})')
+                    .join('\n');
       }
 
       final ragContext = '''
@@ -651,7 +748,12 @@ Dựa VÀO CHÍNH XÁC DỮ LIỆU THỰC TẾ LMS Ở TRÊN để trả lời t
         });
         final result = _unwrap(res);
         if (result is Map) {
-          responseText = (result['reply'] ?? result['response'] ?? result['aiAdviceSummary'] ?? result['advice'] ?? '').toString();
+          responseText = (result['reply'] ??
+                  result['response'] ??
+                  result['aiAdviceSummary'] ??
+                  result['advice'] ??
+                  '')
+              .toString();
         } else if (result != null) {
           responseText = result.toString();
         }
@@ -662,7 +764,12 @@ Dựa VÀO CHÍNH XÁC DỮ LIỆU THỰC TẾ LMS Ở TRÊN để trả lời t
         });
         final result = _unwrap(res);
         if (result is Map) {
-          responseText = (result['aiAdviceSummary'] ?? result['reply'] ?? result['advice'] ?? result['response'] ?? '').toString();
+          responseText = (result['aiAdviceSummary'] ??
+                  result['reply'] ??
+                  result['advice'] ??
+                  result['response'] ??
+                  '')
+              .toString();
         } else if (result != null) {
           responseText = result.toString();
         }
@@ -681,7 +788,8 @@ Dựa VÀO CHÍNH XÁC DỮ LIỆU THỰC TẾ LMS Ở TRÊN để trả lời t
     } catch (e) {
       return ChatMessageEntity(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        text: 'Cố vấn AI hiện đang bận hoặc quá tải. Vui lòng gửi lại câu hỏi sau ít phút!',
+        text:
+            'Cố vấn AI hiện đang bận hoặc quá tải. Vui lòng gửi lại câu hỏi sau ít phút!',
         isUser: false,
         timestamp: DateTime.now(),
       );
@@ -696,12 +804,16 @@ Dựa VÀO CHÍNH XÁC DỮ LIỆU THỰC TẾ LMS Ở TRÊN để trả lời t
       final res = await _dio.get(ApiEndpoints.studentTuition);
       final list = _unwrap(res) as List<dynamic>? ?? [];
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((e) => TuitionItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map((e) => TuitionItemEntity.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((e) => TuitionItemEntity.fromJson(e as Map<String, dynamic>)).toList();
+        return list
+            .map((e) => TuitionItemEntity.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       return [];
     }

@@ -36,12 +36,18 @@ class StudentRepositoryImpl implements StudentRepository {
       final response = await dioClient.dio.get(ApiEndpoints.studentClasses);
       final list = _unwrap(response) as List<dynamic>? ?? [];
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((json) => CourseClassDto.fromJson(json as Map<String, dynamic>).toEntity()).toList();
+      return list
+          .map((json) =>
+              CourseClassDto.fromJson(json as Map<String, dynamic>).toEntity())
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((json) => CourseClassDto.fromJson(json as Map<String, dynamic>).toEntity()).toList();
+        return list
+            .map((json) => CourseClassDto.fromJson(json as Map<String, dynamic>)
+                .toEntity())
+            .toList();
       }
       return [];
     }
@@ -54,12 +60,18 @@ class StudentRepositoryImpl implements StudentRepository {
       final response = await dioClient.dio.get(ApiEndpoints.studentSchedule);
       final list = _unwrap(response) as List<dynamic>? ?? [];
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((json) => ScheduleDto.fromJson(json as Map<String, dynamic>).toEntity()).toList();
+      return list
+          .map((json) =>
+              ScheduleDto.fromJson(json as Map<String, dynamic>).toEntity())
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((json) => ScheduleDto.fromJson(json as Map<String, dynamic>).toEntity()).toList();
+        return list
+            .map((json) =>
+                ScheduleDto.fromJson(json as Map<String, dynamic>).toEntity())
+            .toList();
       }
       return [];
     }
@@ -72,12 +84,18 @@ class StudentRepositoryImpl implements StudentRepository {
       final response = await dioClient.dio.get(ApiEndpoints.studentGrades);
       final list = _unwrap(response) as List<dynamic>? ?? [];
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((json) => GradeDto.fromJson(json as Map<String, dynamic>).toEntity()).toList();
+      return list
+          .map((json) =>
+              GradeDto.fromJson(json as Map<String, dynamic>).toEntity())
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((json) => GradeDto.fromJson(json as Map<String, dynamic>).toEntity()).toList();
+        return list
+            .map((json) =>
+                GradeDto.fromJson(json as Map<String, dynamic>).toEntity())
+            .toList();
       }
       return [];
     }
@@ -90,12 +108,18 @@ class StudentRepositoryImpl implements StudentRepository {
       final response = await dioClient.dio.get(ApiEndpoints.studentTuition);
       final list = _unwrap(response) as List<dynamic>? ?? [];
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
-      return list.map((json) => TuitionDto.fromJson(json as Map<String, dynamic>).toEntity()).toList();
+      return list
+          .map((json) =>
+              TuitionDto.fromJson(json as Map<String, dynamic>).toEntity())
+          .toList();
     } catch (_) {
       final cachedStr = sessionManager.getCachedData(cacheKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final list = jsonDecode(cachedStr) as List<dynamic>? ?? [];
-        return list.map((json) => TuitionDto.fromJson(json as Map<String, dynamic>).toEntity()).toList();
+        return list
+            .map((json) =>
+                TuitionDto.fromJson(json as Map<String, dynamic>).toEntity())
+            .toList();
       }
       return [];
     }
@@ -103,14 +127,16 @@ class StudentRepositoryImpl implements StudentRepository {
 
   @override
   Future<PayOSPaymentEntity> createPayOSPayment(int invoiceId) async {
-    final response = await dioClient.dio.post(ApiEndpoints.payOSCreatePayment(invoiceId));
+    final response =
+        await dioClient.dio.post(ApiEndpoints.payOSCreatePayment(invoiceId));
     final data = _unwrap(response) as Map<String, dynamic>;
     return PayOSPaymentEntity.fromJson(data);
   }
 
   @override
   Future<bool> verifyPayOSPayment(int invoiceId) async {
-    final response = await dioClient.dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
+    final response =
+        await dioClient.dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
     final invoice = _unwrap(response) as Map<String, dynamic>;
     return invoice['status'] == 'PAID';
   }

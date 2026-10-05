@@ -31,12 +31,14 @@ abstract class LmsRepository {
   Future<void> submitAssignment(int assignmentId, String fileUrl);
   Future<List<SubmissionEntity>> getAssignmentSubmissions(int assignmentId);
   Future<void> gradeSubmission(int submissionId, double score, String feedback);
-  Future<void> createAssignment(int classId, String title, String description, String dueDate, double maxScore);
+  Future<void> createAssignment(int classId, String title, String description,
+      String dueDate, double maxScore);
 
   // Quizzes
   Future<List<QuizEntity>> getClassQuizzes(int classId);
   Future<List<QuizQuestionEntity>> getQuizQuestions(int quizId);
-  Future<QuizAttemptEntity> submitQuizAttempt(int quizId, Map<int, String> answers);
+  Future<QuizAttemptEntity> submitQuizAttempt(
+      int quizId, Map<int, String> answers);
   Future<void> startQuizAttempt(int quizId);
 
   // Forum
@@ -48,13 +50,15 @@ abstract class LmsRepository {
   Future<List<StudentAttendanceSummary>> getStudentAttendanceSummary();
   Future<List<AttendanceEntity>> getClassAttendance(int classId);
   Future<List<Map<String, dynamic>>> getClassStudents(int classId);
-  Future<void> markClassAttendance(int classId, String date, List<Map<String, dynamic>> records);
+  Future<void> markClassAttendance(
+      int classId, String date, List<Map<String, dynamic>> records);
   Future<bool> submitQrAttendance(int classId, String otpToken);
 
   // Gradebook / Transcript
   Future<List<GradeEntity>> getStudentGrades();
   Future<List<Map<String, dynamic>>> getClassGradebook(int classId);
-  Future<void> updateStudentGrade(int classId, int studentId, double? midterm, double? finalScore);
+  Future<void> updateStudentGrade(
+      int classId, int studentId, double? midterm, double? finalScore);
   Future<void> publishGrades(int classId);
 
   // Course Registration

@@ -25,13 +25,18 @@ class ApiEndpoints {
   static String classDetail(int classId) => '/me/classes/$classId';
   static String classChapters(int classId) => '/classes/$classId/chapters';
   static String chapterLessons(int chapterId) => '/chapters/$chapterId/lessons';
-  static String markLessonProgress(int lessonId) => '/progress/lessons/$lessonId/complete/me';
-  
+  static String markLessonProgress(int lessonId) =>
+      '/progress/lessons/$lessonId/complete/me';
+
   // Assignments
-  static String classAssignments(int classId) => '/classes/$classId/assignments';
-  static String submitAssignment(int assignmentId) => '/assignments/$assignmentId/submit';
-  static String assignmentSubmissions(int assignmentId) => '/assignments/$assignmentId/submissions';
-  static String gradeSubmission(int submissionId) => '/submissions/$submissionId/grade';
+  static String classAssignments(int classId) =>
+      '/classes/$classId/assignments';
+  static String submitAssignment(int assignmentId) =>
+      '/assignments/$assignmentId/submit';
+  static String assignmentSubmissions(int assignmentId) =>
+      '/assignments/$assignmentId/submissions';
+  static String gradeSubmission(int submissionId) =>
+      '/submissions/$submissionId/grade';
 
   // Quizzes
   static String classQuizzes(int classId) => '/quizzes/class/$classId';
@@ -45,13 +50,16 @@ class ApiEndpoints {
 
   // Attendance (Lecturer)
   static String classAttendance(int classId) => '/classes/$classId/attendance';
-  static String myClassAttendance(int classId) => '/classes/$classId/attendance/me';
+  static String myClassAttendance(int classId) =>
+      '/classes/$classId/attendance/me';
   static String markAttendance(int classId) => '/classes/$classId/attendance';
 
   // Gradebook (Lecturer)
   static String classGradebook(int classId) => '/classes/$classId/grades';
-  static String updateStudentGrade(int classId, int studentId) => '/classes/$classId/grades';
-  static String publishGrades(int classId) => '/classes/$classId/grades/publish';
+  static String updateStudentGrade(int classId, int studentId) =>
+      '/classes/$classId/grades';
+  static String publishGrades(int classId) =>
+      '/classes/$classId/grades/publish';
 
   // Course Registration (Student)
   static const String activeRegistrationPeriod = '/registration-periods/active';
@@ -62,7 +70,8 @@ class ApiEndpoints {
 
   // Notifications
   static const String notifications = '/me/notifications';
-  static const String unreadNotificationCount = '/me/notifications/unread-count';
+  static const String unreadNotificationCount =
+      '/me/notifications/unread-count';
   static String markNotificationRead(int id) => '/notifications/$id/read';
 
   // AI Learning Advisor
@@ -70,8 +79,11 @@ class ApiEndpoints {
   static const String aiAdvisorAsk = '/ai/advisor/ask';
 
   // Tuition Payment & PayOS
-  static String payTuition(int invoiceId) => '/me/tuition/$invoiceId/simulate-payment';
-  static String payOSCreatePayment(int invoiceId) => '/me/tuition/$invoiceId/payos-create-payment';
-  static String payOSVerifyPayment(int invoiceId) => '/me/tuition/$invoiceId/payos-verify';
+  static String payTuition(int invoiceId) =>
+      '/me/tuition/$invoiceId/simulate-payment';
+  static String payOSCreatePayment(int invoiceId) =>
+      '/me/tuition/$invoiceId/payos-create-payment';
+  static String payOSVerifyPayment(int invoiceId) =>
+      '/me/tuition/$invoiceId/payos-verify';
   static const String paymentOptions = '/public/payment-options';
 }

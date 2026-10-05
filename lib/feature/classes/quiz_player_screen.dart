@@ -19,7 +19,8 @@ class QuizPlayerScreen extends StatefulWidget {
   State<QuizPlayerScreen> createState() => _QuizPlayerScreenState();
 }
 
-class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBindingObserver {
+class _QuizPlayerScreenState extends State<QuizPlayerScreen>
+    with WidgetsBindingObserver {
   final LmsRepository _repo = getIt<LmsRepository>();
 
   int _currentIndex = 0;
@@ -64,13 +65,15 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       if (!_isSubmitting) {
         _warningCount++;
         if (_warningCount >= 3) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('🚨 CẢNH BÁO GIAN LẬN: Bạn đã rời ứng dụng quá 3 lần. Hệ thống tự động nộp bài!'),
+              content: Text(
+                  '🚨 CẢNH BÁO GIAN LẬN: Bạn đã rời ứng dụng quá 3 lần. Hệ thống tự động nộp bài!'),
               backgroundColor: Colors.red,
             ),
           );
@@ -78,7 +81,8 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('⚠️ CẢNH BÁO VI PHẠM TƯƠNG TÁC ($_warningCount/3): Không được thoát ứng dụng hoặc chuyển tab trong khi làm bài thi!'),
+              content: Text(
+                  '⚠️ CẢNH BÁO VI PHẠM TƯƠNG TÁC ($_warningCount/3): Không được thoát ứng dụng hoặc chuyển tab trong khi làm bài thi!'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -123,18 +127,22 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
     _timer?.cancel();
 
     try {
-      final attempt = await _repo.submitQuizAttempt(widget.quiz.id, _userAnswers);
+      final attempt =
+          await _repo.submitQuizAttempt(widget.quiz.id, _userAnswers);
       if (!mounted) return;
 
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
               Icon(
-                attempt.score >= 5.0 ? Icons.stars_rounded : Icons.warning_amber_rounded,
+                attempt.score >= 5.0
+                    ? Icons.stars_rounded
+                    : Icons.warning_amber_rounded,
                 color: attempt.score >= 5.0 ? Colors.amber : Colors.orange,
                 size: 28,
               ),
@@ -164,20 +172,28 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
               const SizedBox(height: 12),
               Text(
                 'Thang điểm: ${widget.quiz.totalScore}',
-                style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Chip(
                 label: Text(
                   attempt.score >= 5.0 ? 'ĐẠT BÀI KIỂM TRA' : 'CHƯA ĐẠT',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12),
                 ),
-                backgroundColor: attempt.score >= 5.0 ? AppColors.success : Colors.red,
+                backgroundColor:
+                    attempt.score >= 5.0 ? AppColors.success : Colors.red,
               ),
               const SizedBox(height: 12),
               Text(
                 'Số câu đã trả lời: ${_userAnswers.length} / ${widget.questions.length}',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -186,7 +202,8 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
                 Navigator.pop(ctx); // Close dialog
@@ -200,7 +217,9 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
     } catch (_) {
       setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không thể gửi bài kiểm tra. Vui lòng thử lại!'), backgroundColor: Colors.red),
+        const SnackBar(
+            content: Text('Không thể gửi bài kiểm tra. Vui lòng thử lại!'),
+            backgroundColor: Colors.red),
       );
     }
   }
@@ -220,12 +239,16 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Thoát bài kiểm tra?'),
-            content: const Text('Bài làm của bạn chưa được nộp. Bạn có chắc muốn rời đi?'),
+            content: const Text(
+                'Bài làm của bạn chưa được nộp. Bạn có chắc muốn rời đi?'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Làm tiếp')),
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Làm tiếp')),
               ElevatedButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red, foregroundColor: Colors.white),
                 child: const Text('Thoát'),
               ),
             ],
@@ -275,180 +298,223 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text('Could not start this quiz attempt.'),
-                    TextButton(onPressed: _initializeAttempt, child: const Text('Retry')),
+                    TextButton(
+                        onPressed: _initializeAttempt,
+                        child: const Text('Retry')),
                   ],
                 ),
               )
             : _isStarting
-            ? const Center(child: CircularProgressIndicator())
-            : _isSubmitting
-            ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Đang nộp & chấm điểm tự động...', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              )
-            : Column(
-                children: [
-                  // Progress Bar
-                  LinearProgressIndicator(
-                    value: (_currentIndex + 1) / totalQ,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  ),
-
-                  // Question Selector Chips
-                  Container(
-                    height: 50,
-                    color: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: totalQ,
-                      itemBuilder: (ctx, idx) {
-                        final isSelected = idx == _currentIndex;
-                        final isAnswered = _userAnswers.containsKey(widget.questions[idx].id);
-
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: InkWell(
-                            onTap: () => setState(() => _currentIndex = idx),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              width: 34,
-                              height: 34,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : (isAnswered ? AppColors.success.withOpacity(0.15) : Colors.grey.shade100),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : (isAnswered ? AppColors.success : Colors.grey.shade300),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Text(
-                                '${idx + 1}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : (isAnswered ? AppColors.success : Colors.grey.shade700),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const Divider(height: 1),
-
-                  // Main Question Card
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                ? const Center(child: CircularProgressIndicator())
+                : _isSubmitting
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text('Đang nộp & chấm điểm tự động...',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      )
+                    : Column(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Câu ${_currentIndex + 1} / $totalQ',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 14),
-                              ),
-                              if (_userAnswers.containsKey(currentQ.id))
-                                const Chip(
-                                  label: Text('Đã chọn', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                                  backgroundColor: AppColors.success,
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                            ],
+                          // Progress Bar
+                          LinearProgressIndicator(
+                            value: (_currentIndex + 1) / totalQ,
+                            backgroundColor: Colors.grey.shade200,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.primary),
                           ),
-                          const SizedBox(height: 12),
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            child: Padding(
+
+                          // Question Selector Chips
+                          Container(
+                            height: 50,
+                            color: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: totalQ,
+                              itemBuilder: (ctx, idx) {
+                                final isSelected = idx == _currentIndex;
+                                final isAnswered = _userAnswers
+                                    .containsKey(widget.questions[idx].id);
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: InkWell(
+                                    onTap: () =>
+                                        setState(() => _currentIndex = idx),
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      width: 34,
+                                      height: 34,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : (isAnswered
+                                                ? AppColors.success
+                                                    .withOpacity(0.15)
+                                                : Colors.grey.shade100),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.primary
+                                              : (isAnswered
+                                                  ? AppColors.success
+                                                  : Colors.grey.shade300),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${idx + 1}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : (isAnswered
+                                                  ? AppColors.success
+                                                  : Colors.grey.shade700),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+
+                          const Divider(height: 1),
+
+                          // Main Question Card
+                          Expanded(
+                            child: SingleChildScrollView(
                               padding: const EdgeInsets.all(16),
-                              child: Text(
-                                currentQ.questionText,
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, height: 1.4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Câu ${_currentIndex + 1} / $totalQ',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primary,
+                                            fontSize: 14),
+                                      ),
+                                      if (_userAnswers.containsKey(currentQ.id))
+                                        const Chip(
+                                          label: Text('Đã chọn',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold)),
+                                          backgroundColor: AppColors.success,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Card(
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Text(
+                                        currentQ.questionText,
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            height: 1.4),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Option Selectors (A, B, C, D)
+                                  _buildOptionTile(
+                                      'A', currentQ.optionA, currentQ.id),
+                                  _buildOptionTile(
+                                      'B', currentQ.optionB, currentQ.id),
+                                  _buildOptionTile(
+                                      'C', currentQ.optionC, currentQ.id),
+                                  _buildOptionTile(
+                                      'D', currentQ.optionD, currentQ.id),
+                                ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
 
-                          // Option Selectors (A, B, C, D)
-                          _buildOptionTile('A', currentQ.optionA, currentQ.id),
-                          _buildOptionTile('B', currentQ.optionB, currentQ.id),
-                          _buildOptionTile('C', currentQ.optionC, currentQ.id),
-                          _buildOptionTile('D', currentQ.optionD, currentQ.id),
+                          // Bottom Action Navigation Bar
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, -3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: _currentIndex > 0
+                                      ? () => setState(() => _currentIndex--)
+                                      : null,
+                                  icon: const Icon(Icons.arrow_back),
+                                  label: const Text('Câu trước'),
+                                ),
+                                if (isLastQ)
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.success,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                    ),
+                                    icon:
+                                        const Icon(Icons.check_circle_outline),
+                                    label: const Text('Nộp bài ngay',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    onPressed: () => _submitQuiz(),
+                                  )
+                                else
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                    ),
+                                    icon: const Icon(Icons.arrow_forward),
+                                    label: const Text('Câu tiếp'),
+                                    onPressed: () =>
+                                        setState(() => _currentIndex++),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                  ),
-
-                  // Bottom Action Navigation Bar
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, -3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: _currentIndex > 0 ? () => setState(() => _currentIndex--) : null,
-                          icon: const Icon(Icons.arrow_back),
-                          label: const Text('Câu trước'),
-                        ),
-                        if (isLastQ)
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.success,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            icon: const Icon(Icons.check_circle_outline),
-                            label: const Text('Nộp bài ngay', style: TextStyle(fontWeight: FontWeight.bold)),
-                            onPressed: () => _submitQuiz(),
-                          )
-                        else
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            icon: const Icon(Icons.arrow_forward),
-                            label: const Text('Câu tiếp'),
-                            onPressed: () => setState(() => _currentIndex++),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }
@@ -468,7 +534,8 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.white,
+            color:
+                isSelected ? AppColors.primary.withOpacity(0.08) : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected ? AppColors.primary : Colors.grey.shade300,
@@ -499,13 +566,15 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
                   text,
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     color: isSelected ? AppColors.primary : Colors.black87,
                   ),
                 ),
               ),
               if (isSelected)
-                const Icon(Icons.check_circle, color: AppColors.primary, size: 22),
+                const Icon(Icons.check_circle,
+                    color: AppColors.primary, size: 22),
             ],
           ),
         ),

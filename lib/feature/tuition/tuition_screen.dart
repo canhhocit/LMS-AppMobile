@@ -53,7 +53,11 @@ class _TuitionScreenState extends State<TuitionScreen> {
                   payOsEnabled = options['payOsEnabled'] == true;
                   simulationEnabled = options['simulationEnabled'] == true;
                 });
-              }).catchError((error) { setModalState(() { errorMsg = error.toString(); }); });
+              }).catchError((error) {
+                setModalState(() {
+                  errorMsg = error.toString();
+                });
+              });
             }
 
             return Container(
@@ -75,14 +79,15 @@ class _TuitionScreenState extends State<TuitionScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Thanh toán học phí PayOS (VietQR)', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Thanh toán học phí PayOS (VietQR)',
+                      style: AppTextStyles.h3
+                          .copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   Text(
                     'Học kỳ: ${item.semester} • Số tiền: ${_formatCurrency(item.remainingAmount)}',
                     style: AppTextStyles.body2,
                   ),
                   const SizedBox(height: 20),
-
                   if (isLoading || isLoadingOptions)
                     const Padding(
                       padding: EdgeInsets.all(32.0),
@@ -91,7 +96,8 @@ class _TuitionScreenState extends State<TuitionScreen> {
                   else if (errorMsg != null)
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Text(errorMsg!, style: const TextStyle(color: AppColors.error)),
+                      child: Text(errorMsg!,
+                          style: const TextStyle(color: AppColors.error)),
                     )
                   else if (payOSData != null) ...[
                     Container(
@@ -99,7 +105,8 @@ class _TuitionScreenState extends State<TuitionScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.primaryBgColor(context),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.borderColor(context)),
+                        border:
+                            Border.all(color: AppColors.borderColor(context)),
                       ),
                       child: Column(
                         children: [
@@ -109,43 +116,56 @@ class _TuitionScreenState extends State<TuitionScreen> {
                               payOSData!.qrCode,
                               height: 180,
                               fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.qr_code_2_rounded, size: 100, color: AppColors.primary),
+                              errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.qr_code_2_rounded,
+                                  size: 100,
+                                  color: AppColors.primary),
                             ),
                           ),
                           const SizedBox(height: 12),
                           Text(
                             payOSData!.bankName,
-                            style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
+                            style: AppTextStyles.body1.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary),
                           ),
-                          Text('STK: ${payOSData!.accountNumber} • ${payOSData!.accountName}', style: AppTextStyles.caption),
+                          Text(
+                              'STK: ${payOSData!.accountNumber} • ${payOSData!.accountName}',
+                              style: AppTextStyles.caption),
                           const SizedBox(height: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: AppColors.surfaceColor(context),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: AppColors.borderColor(context)),
+                              border: Border.all(
+                                  color: AppColors.borderColor(context)),
                             ),
                             child: Text(
                               'Nội dung: ${payOSData!.description}',
-                              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
+                              style: AppTextStyles.caption.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary),
                             ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
-
                     AppButton(
                       text: 'Mở trang thanh toán PayOS',
                       icon: Icons.open_in_new_rounded,
                       onPressed: () {
-                        AppFileLauncher.openOrDownloadFile(context, payOSData!.checkoutUrl);
+                        AppFileLauncher.openOrDownloadFile(
+                            context, payOSData!.checkoutUrl);
                       },
                     ),
                     const SizedBox(height: 10),
                     AppButton(
-                      text: isVerifying ? 'Đang xác minh...' : 'Xác minh thanh toán',
+                      text: isVerifying
+                          ? 'Đang xác minh...'
+                          : 'Xác minh thanh toán',
                       icon: Icons.check_circle_outline_rounded,
                       variant: AppButtonVariant.outline,
                       onPressed: isVerifying
@@ -153,22 +173,32 @@ class _TuitionScreenState extends State<TuitionScreen> {
                           : () async {
                               setModalState(() => isVerifying = true);
                               try {
-                                final isPaid = await getIt<StudentRepository>().verifyPayOSPayment(item.id);
-                                if (context.mounted) {
+                                final isPaid = await getIt<StudentRepository>()
+                                    .verifyPayOSPayment(item.id);
+                                if (context.mounted && isPaid) {
                                   Navigator.pop(bottomSheetContext);
                                   context.read<TuitionCubit>().loadTuition();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Xác nhận thanh toán PayOS thành công!'),
+                                      content: Text(
+                                          'Xác nhận thanh toán PayOS thành công!'),
                                       backgroundColor: AppColors.success,
                                     ),
+                                  );
+                                } else if (context.mounted) {
+                                  setModalState(() => isVerifying = false);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Payment is still pending PayOS confirmation.')),
                                   );
                                 }
                               } catch (e) {
                                 setModalState(() => isVerifying = false);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Chưa ghi nhận giao dịch: ${e.toString()}'),
+                                    content: Text(
+                                        'Chưa ghi nhận giao dịch: ${e.toString()}'),
                                     backgroundColor: AppColors.error,
                                   ),
                                 );
@@ -178,15 +208,25 @@ class _TuitionScreenState extends State<TuitionScreen> {
                   ] else ...[
                     if (payOsEnabled)
                       AppButton(
-                        text: 'PayOS real payment',
+                        text: 'Continue / create PayOS payment',
                         icon: Icons.payment,
                         onPressed: () async {
-                          setModalState(() { isLoading = true; errorMsg = null; });
+                          setModalState(() {
+                            isLoading = true;
+                            errorMsg = null;
+                          });
                           try {
-                            final data = await getIt<StudentRepository>().createPayOSPayment(item.id);
-                            setModalState(() { payOSData = data; isLoading = false; });
+                            final data = await getIt<StudentRepository>()
+                                .createPayOSPayment(item.id);
+                            setModalState(() {
+                              payOSData = data;
+                              isLoading = false;
+                            });
                           } catch (error) {
-                            setModalState(() { errorMsg = error.toString(); isLoading = false; });
+                            setModalState(() {
+                              errorMsg = error.toString();
+                              isLoading = false;
+                            });
                           }
                         },
                       ),
@@ -197,11 +237,16 @@ class _TuitionScreenState extends State<TuitionScreen> {
                         variant: AppButtonVariant.outline,
                         onPressed: () async {
                           try {
-                            await getIt<StudentRepository>().simulateTuitionPayment(item.id);
-                            if (bottomSheetContext.mounted) Navigator.pop(bottomSheetContext);
+                            await getIt<StudentRepository>()
+                                .simulateTuitionPayment(item.id);
+                            if (bottomSheetContext.mounted)
+                              Navigator.pop(bottomSheetContext);
                             if (context.mounted) {
                               context.read<TuitionCubit>().loadTuition();
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Simulation recorded. No real money was transferred.')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Simulation recorded. No real money was transferred.')));
                             }
                           } catch (error) {
                             setModalState(() => errorMsg = error.toString());
@@ -325,7 +370,8 @@ class _TuitionScreenState extends State<TuitionScreen> {
                       list.isEmpty
                           ? const AppEmptyState(
                               title: 'Chưa có thông tin học phí',
-                              subtitle: 'Danh sách hóa đơn học phí sẽ được cập nhật tại đây.',
+                              subtitle:
+                                  'Danh sách hóa đơn học phí sẽ được cập nhật tại đây.',
                               icon: Icons.receipt_long_outlined,
                             )
                           : ListView.builder(
@@ -340,32 +386,45 @@ class _TuitionScreenState extends State<TuitionScreen> {
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: AppCard(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
                                               item.semester,
-                                              style: AppTextStyles.body1.copyWith(
+                                              style:
+                                                  AppTextStyles.body1.copyWith(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 15,
                                               ),
                                             ),
                                             AppBadge(
-                                              text: isPaid ? (item.paymentMethod == 'SIMULATED' ? 'Paid (simulation)' : 'Paid') : 'Unpaid',
-                                              variant: isPaid ? AppBadgeVariant.success : AppBadgeVariant.warning,
+                                              text: isPaid
+                                                  ? (item.paymentMethod ==
+                                                          'SIMULATED'
+                                                      ? 'Paid (simulation)'
+                                                      : 'Paid')
+                                                  : 'Unpaid',
+                                              variant: isPaid
+                                                  ? AppBadgeVariant.success
+                                                  : AppBadgeVariant.warning,
                                             ),
                                           ],
                                         ),
                                         const SizedBox(height: 12),
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Text('Tổng học phí:', style: AppTextStyles.body2),
+                                            Text('Tổng học phí:',
+                                                style: AppTextStyles.body2),
                                             Text(
                                               _formatCurrency(item.totalAmount),
-                                              style: AppTextStyles.body1.copyWith(
+                                              style:
+                                                  AppTextStyles.body1.copyWith(
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -373,12 +432,15 @@ class _TuitionScreenState extends State<TuitionScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Text('Đã nộp:', style: AppTextStyles.body2),
+                                            Text('Đã nộp:',
+                                                style: AppTextStyles.body2),
                                             Text(
                                               _formatCurrency(item.paidAmount),
-                                              style: AppTextStyles.body1.copyWith(
+                                              style:
+                                                  AppTextStyles.body1.copyWith(
                                                 color: AppColors.success,
                                               ),
                                             ),
@@ -386,54 +448,81 @@ class _TuitionScreenState extends State<TuitionScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Text('Còn nợ:', style: AppTextStyles.body2),
+                                            Text('Còn nợ:',
+                                                style: AppTextStyles.body2),
                                             Text(
-                                              _formatCurrency(item.remainingAmount),
-                                              style: AppTextStyles.body1.copyWith(
-                                                color: item.remainingAmount > 0 ? AppColors.error : AppColors.textPrimary,
+                                              _formatCurrency(
+                                                  item.remainingAmount),
+                                              style:
+                                                  AppTextStyles.body1.copyWith(
+                                                color: item.remainingAmount > 0
+                                                    ? AppColors.error
+                                                    : AppColors.textPrimary,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ],
                                         ),
-                                        if (item.dueDate.isNotEmpty || !isPaid) ...[
+                                        if (item.dueDate.isNotEmpty ||
+                                            !isPaid) ...[
                                           const Divider(height: 20),
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               if (item.dueDate.isNotEmpty)
                                                 Row(
                                                   children: [
                                                     const Icon(
-                                                      Icons.calendar_today_outlined,
+                                                      Icons
+                                                          .calendar_today_outlined,
                                                       size: 14,
-                                                      color: AppColors.textMuted,
+                                                      color:
+                                                          AppColors.textMuted,
                                                     ),
                                                     const SizedBox(width: 6),
                                                     Text(
                                                       'Hạn: ${item.dueDate}',
-                                                      style: AppTextStyles.caption,
+                                                      style:
+                                                          AppTextStyles.caption,
                                                     ),
                                                   ],
                                                 ),
-
                                               if (!isPaid)
                                                 ElevatedButton.icon(
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: AppColors.primary,
-                                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(8),
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        AppColors.primary,
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 14,
+                                                        vertical: 8),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
                                                     ),
                                                   ),
-                                                  icon: const Icon(Icons.payment_rounded, size: 16, color: Colors.white),
+                                                  icon: const Icon(
+                                                      Icons.payment_rounded,
+                                                      size: 16,
+                                                      color: Colors.white),
                                                   label: const Text(
                                                     'Nộp học phí',
-                                                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.bold),
                                                   ),
-                                                  onPressed: () => _showPayOSModal(context, item),
+                                                  onPressed: () =>
+                                                      _showPayOSModal(
+                                                          context, item),
                                                 ),
                                             ],
                                           ),
