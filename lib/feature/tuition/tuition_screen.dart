@@ -37,24 +37,23 @@ class _TuitionScreenState extends State<TuitionScreen> {
       backgroundColor: Colors.transparent,
       builder: (bottomSheetContext) {
         PayOSPaymentEntity? payOSData;
-        bool isLoading = true;
+        bool isLoading = false;
+        bool isLoadingOptions = true;
+        bool payOsEnabled = false;
+        bool simulationEnabled = false;
         bool isVerifying = false;
         String? errorMsg;
 
         return StatefulBuilder(
           builder: (ctx, setModalState) {
-            if (isLoading && payOSData == null && errorMsg == null) {
-              getIt<StudentRepository>().createPayOSPayment(item.id).then((data) {
+            if (isLoadingOptions) {
+              isLoadingOptions = false;
+              getIt<StudentRepository>().getPaymentOptions().then((options) {
                 setModalState(() {
-                  payOSData = data;
-                  isLoading = false;
+                  payOsEnabled = options['payOsEnabled'] == true;
+                  simulationEnabled = options['simulationEnabled'] == true;
                 });
-              }).catchError((e) {
-                setModalState(() {
-                  errorMsg = 'Lỗi kết nối dịch vụ thanh toán: ${e.toString()}';
-                  isLoading = false;
-                });
-              });
+              }).catchError((error) { setModalState(() { errorMsg = error.toString(); }); });
             }
 
             return Container(
@@ -84,7 +83,7 @@ class _TuitionScreenState extends State<TuitionScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  if (isLoading)
+                  if (isLoading || isLoadingOptions)
                     const Padding(
                       padding: EdgeInsets.all(32.0),
                       child: CircularProgressIndicator(),
@@ -154,7 +153,7 @@ class _TuitionScreenState extends State<TuitionScreen> {
                           : () async {
                               setModalState(() => isVerifying = true);
                               try {
-                                await getIt<StudentRepository>().verifyPayOSPayment(item.id);
+                                final isPaid = await getIt<StudentRepository>().verifyPayOSPayment(item.id);
                                 if (context.mounted) {
                                   Navigator.pop(bottomSheetContext);
                                   context.read<TuitionCubit>().loadTuition();
@@ -176,6 +175,41 @@ class _TuitionScreenState extends State<TuitionScreen> {
                               }
                             },
                     ),
+                  ] else ...[
+                    if (payOsEnabled)
+                      AppButton(
+                        text: 'PayOS real payment',
+                        icon: Icons.payment,
+                        onPressed: () async {
+                          setModalState(() { isLoading = true; errorMsg = null; });
+                          try {
+                            final data = await getIt<StudentRepository>().createPayOSPayment(item.id);
+                            setModalState(() { payOSData = data; isLoading = false; });
+                          } catch (error) {
+                            setModalState(() { errorMsg = error.toString(); isLoading = false; });
+                          }
+                        },
+                      ),
+                    if (simulationEnabled)
+                      AppButton(
+                        text: 'Simulated payment (no real money)',
+                        icon: Icons.science_outlined,
+                        variant: AppButtonVariant.outline,
+                        onPressed: () async {
+                          try {
+                            await getIt<StudentRepository>().simulateTuitionPayment(item.id);
+                            if (bottomSheetContext.mounted) Navigator.pop(bottomSheetContext);
+                            if (context.mounted) {
+                              context.read<TuitionCubit>().loadTuition();
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Simulation recorded. No real money was transferred.')));
+                            }
+                          } catch (error) {
+                            setModalState(() => errorMsg = error.toString());
+                          }
+                        },
+                      ),
+                    if (!payOsEnabled && !simulationEnabled)
+                      const Text('No payment method is currently enabled.'),
                   ],
                 ],
               ),
@@ -319,7 +353,7 @@ class _TuitionScreenState extends State<TuitionScreen> {
                                               ),
                                             ),
                                             AppBadge(
-                                              text: isPaid ? 'Đã hoàn thành' : 'Chưa hoàn thành',
+                                              text: isPaid ? (item.paymentMethod == 'SIMULATED' ? 'Paid (simulation)' : 'Paid') : 'Unpaid',
                                               variant: isPaid ? AppBadgeVariant.success : AppBadgeVariant.warning,
                                             ),
                                           ],

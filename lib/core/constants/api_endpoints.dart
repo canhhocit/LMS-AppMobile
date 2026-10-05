@@ -7,7 +7,7 @@ class ApiEndpoints {
   static const String register = '/auth/register';
   static const String refreshToken = '/auth/refresh';
   static const String me = '/me/profile';
-  static const String changePassword = '/me/change-password';
+  static const String changePassword = '/auth/change-password';
 
   // Student & Lecturer Endpoints (Backend uses /me/* endpoints)
   static const String studentClasses = '/me/classes';
@@ -15,7 +15,6 @@ class ApiEndpoints {
   static const String studentGrades = '/me/grades';
   static const String studentTuition = '/me/tuition';
   static const String studentProfile = '/me/profile';
-  static const String studentAttendance = '/me/attendance';
 
   // Lecturer Endpoints
   static const String lecturerClasses = '/me/classes';
@@ -26,7 +25,7 @@ class ApiEndpoints {
   static String classDetail(int classId) => '/me/classes/$classId';
   static String classChapters(int classId) => '/classes/$classId/chapters';
   static String chapterLessons(int chapterId) => '/chapters/$chapterId/lessons';
-  static String markLessonProgress(int lessonId) => '/lessons/$lessonId/progress';
+  static String markLessonProgress(int lessonId) => '/progress/lessons/$lessonId/complete/me';
   
   // Assignments
   static String classAssignments(int classId) => '/classes/$classId/assignments';
@@ -35,9 +34,10 @@ class ApiEndpoints {
   static String gradeSubmission(int submissionId) => '/submissions/$submissionId/grade';
 
   // Quizzes
-  static String classQuizzes(int classId) => '/classes/$classId/quizzes';
+  static String classQuizzes(int classId) => '/quizzes/class/$classId';
   static String quizQuestions(int quizId) => '/quizzes/$quizId/questions';
-  static String submitQuizAttempt(int quizId) => '/quizzes/$quizId/submit';
+  static String startQuizAttempt(int quizId) => '/quizzes/$quizId/start';
+  static String submitQuizAttempt(int quizId) => '/quizzes/$quizId/attempts';
 
   // Forum
   static String classForumPosts(int classId) => '/classes/$classId/forum/posts';
@@ -45,6 +45,7 @@ class ApiEndpoints {
 
   // Attendance (Lecturer)
   static String classAttendance(int classId) => '/classes/$classId/attendance';
+  static String myClassAttendance(int classId) => '/classes/$classId/attendance/me';
   static String markAttendance(int classId) => '/classes/$classId/attendance';
 
   // Gradebook (Lecturer)
@@ -69,7 +70,8 @@ class ApiEndpoints {
   static const String aiAdvisorAsk = '/ai/advisor/ask';
 
   // Tuition Payment & PayOS
-  static String payTuition(int invoiceId) => '/me/tuition/$invoiceId/pay';
+  static String payTuition(int invoiceId) => '/me/tuition/$invoiceId/simulate-payment';
   static String payOSCreatePayment(int invoiceId) => '/me/tuition/$invoiceId/payos-create-payment';
   static String payOSVerifyPayment(int invoiceId) => '/me/tuition/$invoiceId/payos-verify';
+  static const String paymentOptions = '/public/payment-options';
 }

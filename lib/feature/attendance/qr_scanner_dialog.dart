@@ -29,15 +29,7 @@ class _QrScannerDialogState extends State<QrScannerDialog> {
           _isScanned = true;
         });
 
-        // Parse token/OTP if formatted as LEARNINGHUB_QR|sessionToken|otpCode|classId
-        String extractedOtp = rawValue;
-        if (rawValue.contains('|')) {
-          final parts = rawValue.split('|');
-          if (parts.length >= 3) {
-            extractedOtp = parts[2]; // OTP Code
-          }
-        }
-        Navigator.pop(context, extractedOtp);
+        Navigator.pop(context, rawValue);
         break;
       }
     }

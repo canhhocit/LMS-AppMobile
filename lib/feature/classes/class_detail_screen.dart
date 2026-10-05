@@ -668,36 +668,42 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
   void _showCreateAssignmentModal() {
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
-    final dateCtrl = TextEditingController(text: '2026-10-01 23:59');
+    final dueAt = DateTime.now().add(const Duration(days: 7));
+    String pad(int value) => value.toString().padLeft(2, '0');
+    final dateCtrl = TextEditingController(
+      text: '${dueAt.year}-${pad(dueAt.month)}-${pad(dueAt.day)}T${pad(dueAt.hour)}:${pad(dueAt.minute)}:00',
+    );
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Tạo bài tập mới'),
+        title: const Text('Create assignment'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Tên bài tập')),
-            TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Mô tả bài tập')),
-            TextField(controller: dateCtrl, decoration: const InputDecoration(labelText: 'Hạn nộp (YYYY-MM-DD HH:mm)')),
+            TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Title')),
+            TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description')),
+            TextField(controller: dateCtrl, decoration: const InputDecoration(labelText: 'Due date (YYYY-MM-DDTHH:mm:ss)')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
-              if (titleCtrl.text.trim().isNotEmpty) {
-                await _repo.createAssignment(
-                  widget.courseClass.id,
-                  titleCtrl.text.trim(),
-                  descCtrl.text.trim(),
-                  dateCtrl.text.trim(),
-                  10.0,
-                );
-                Navigator.pop(ctx);
-                _loadAllClassData();
+              final dueDate = DateTime.tryParse(dateCtrl.text.trim().replaceFirst(' ', 'T'));
+              if (titleCtrl.text.trim().isEmpty || dueDate == null || !dueDate.isAfter(DateTime.now())) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a title and a future due date.')));
+                return;
+              }
+              try {
+                await _repo.createAssignment(widget.courseClass.id, titleCtrl.text.trim(), descCtrl.text.trim(), dueDate.toIso8601String(), 10.0);
+                if (ctx.mounted) Navigator.pop(ctx);
+                await _loadAllClassData();
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Assignment created.')));
+              } catch (error) {
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not create assignment: $error')));
               }
             },
-            child: const Text('Tạo mới'),
+            child: const Text('Create'),
           ),
         ],
       ),
@@ -1029,35 +1035,82 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> with SingleTicker
     );
   }
 
-  void _showLecturerMarkAttendanceModal() {
+  Future<void> _showLecturerMarkAttendanceModal() async {
+    late final List<Map<String, dynamic>> students;
+    try {
+      students = await _repo.getClassStudents(widget.courseClass.id);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not load class roster: $error')));
+      }
+      return;
+    }
+    final attendanceDate = DateTime.now().toIso8601String().substring(0, 10);
+    final statuses = <int, String>{};
+    for (final student in students) {
+      final id = (student['id'] as num).toInt();
+      final existing = _attendanceRecords.where((record) => record.studentId == id && record.attendanceDate == attendanceDate);
+      statuses[id] = existing.isEmpty ? 'ABSENT' : existing.first.status;
+    }
+
+    if (!mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Điểm danh Lớp: ${widget.courseClass.classCode}', style: AppTextStyles.h3),
-            const Divider(),
-            const Expanded(
-              child: Center(child: Text('Danh sách sinh viên đang tải... Tất cả mặc định PRESENT.')),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => SizedBox(
+          height: MediaQuery.of(ctx).size.height * 0.78,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Class attendance: ${widget.courseClass.classCode}'),
+                Text('Date: $attendanceDate'),
+                const Divider(),
+                Expanded(
+                  child: students.isEmpty
+                      ? const Center(child: Text('No enrolled students found.'))
+                      : ListView.builder(
+                          itemCount: students.length,
+                          itemBuilder: (ctx, index) {
+                            final student = students[index];
+                            final id = (student['id'] as num).toInt();
+                            return ListTile(
+                              title: Text(student['fullName']?.toString() ?? student['username']?.toString() ?? 'Student $id'),
+                              subtitle: Text(student['studentCode']?.toString() ?? ''),
+                              trailing: DropdownButton<String>(
+                                value: statuses[id],
+                                items: const [
+                                  DropdownMenuItem(value: 'PRESENT', child: Text('Present')),
+                                  DropdownMenuItem(value: 'LATE', child: Text('Late')),
+                                  DropdownMenuItem(value: 'ABSENT', child: Text('Absent')),
+                                ],
+                                onChanged: (value) { if (value != null) setModalState(() => statuses[id] = value); },
+                              ),
+                            );
+                          },
+                        ),
+                ),
+                ElevatedButton(
+                  onPressed: students.isEmpty ? null : () async {
+                    try {
+                      final List<Map<String, dynamic>> records = statuses.entries
+                          .map<Map<String, dynamic>>((entry) => {'studentId': entry.key, 'status': entry.value})
+                          .toList();
+                      await _repo.markClassAttendance(widget.courseClass.id, attendanceDate, records);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      await _loadAllClassData();
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Attendance saved.')));
+                    } catch (error) {
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not save attendance: $error')));
+                    }
+                  },
+                  child: const Text('Save attendance'),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () async {
-                await _repo.markClassAttendance(
-                  widget.courseClass.id,
-                  DateTime.now().toIso8601String().substring(0, 10),
-                  [],
-                );
-                Navigator.pop(ctx);
-                _loadAllClassData();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lưu điểm danh thành công!')));
-              },
-              child: const Text('Lưu điểm danh'),
-            ),
-          ],
+          ),
         ),
       ),
     );

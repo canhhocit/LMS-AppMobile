@@ -37,6 +37,7 @@ abstract class LmsRepository {
   Future<List<QuizEntity>> getClassQuizzes(int classId);
   Future<List<QuizQuestionEntity>> getQuizQuestions(int quizId);
   Future<QuizAttemptEntity> submitQuizAttempt(int quizId, Map<int, String> answers);
+  Future<void> startQuizAttempt(int quizId);
 
   // Forum
   Future<List<ForumPostEntity>> getClassForumPosts(int classId);
@@ -46,6 +47,7 @@ abstract class LmsRepository {
   // Attendance
   Future<List<StudentAttendanceSummary>> getStudentAttendanceSummary();
   Future<List<AttendanceEntity>> getClassAttendance(int classId);
+  Future<List<Map<String, dynamic>>> getClassStudents(int classId);
   Future<void> markClassAttendance(int classId, String date, List<Map<String, dynamic>> records);
   Future<bool> submitQrAttendance(int classId, String otpToken);
 

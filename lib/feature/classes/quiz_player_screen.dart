@@ -25,9 +25,11 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
   int _currentIndex = 0;
   final Map<int, String> _userAnswers = {};
 
-  late Timer _timer;
+  Timer? _timer;
   late int _remainingSeconds;
   bool _isSubmitting = false;
+  bool _isStarting = true;
+  String? _attemptStartError;
   int _warningCount = 0;
 
   @override
@@ -35,7 +37,29 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _remainingSeconds = widget.quiz.durationMinutes * 60;
-    _startTimer();
+    _initializeAttempt();
+  }
+
+  Future<void> _initializeAttempt() async {
+    if (mounted && _attemptStartError != null) {
+      setState(() {
+        _isStarting = true;
+        _attemptStartError = null;
+      });
+    }
+    try {
+      await _repo.startQuizAttempt(widget.quiz.id);
+      if (!mounted) return;
+      setState(() => _isStarting = false);
+      _startTimer();
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _isStarting = false;
+          _attemptStartError = error.toString();
+        });
+      }
+    }
   }
 
   @override
@@ -79,7 +103,7 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -96,7 +120,7 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
 
   Future<void> _submitQuiz({bool isAuto = false}) async {
     setState(() => _isSubmitting = true);
-    _timer.cancel();
+    _timer?.cancel();
 
     try {
       final attempt = await _repo.submitQuizAttempt(widget.quiz.id, _userAnswers);
@@ -245,7 +269,19 @@ class _QuizPlayerScreenState extends State<QuizPlayerScreen> with WidgetsBinding
             ),
           ],
         ),
-        body: _isSubmitting
+        body: _attemptStartError != null
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Could not start this quiz attempt.'),
+                    TextButton(onPressed: _initializeAttempt, child: const Text('Retry')),
+                  ],
+                ),
+              )
+            : _isStarting
+            ? const Center(child: CircularProgressIndicator())
+            : _isSubmitting
             ? const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

@@ -169,8 +169,21 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   }
 
   @override
-  Future<void> verifyPayOSPayment(int invoiceId) async {
-    await _dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
+  Future<bool> verifyPayOSPayment(int invoiceId) async {
+    final response = await _dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
+    final invoice = _unwrap(response) as Map<String, dynamic>;
+    return invoice['status'] == 'PAID';
+  }
+
+  @override
+  Future<Map<String, dynamic>> getPaymentOptions() async {
+    final response = await _dio.get(ApiEndpoints.paymentOptions);
+    return Map<String, dynamic>.from(_unwrap(response) as Map);
+  }
+
+  @override
+  Future<void> simulateTuitionPayment(int invoiceId) async {
+    await _dio.post(ApiEndpoints.payTuition(invoiceId));
   }
 
   // Chapter & Lessons
@@ -205,9 +218,7 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   @override
   Future<void> markLessonProgress(int lessonId, bool completed) async {
-    await _dio.post(ApiEndpoints.markLessonProgress(lessonId), data: {
-      'completed': completed,
-    });
+    await _dio.post(ApiEndpoints.markLessonProgress(lessonId), queryParameters: {'completed': completed});
   }
 
   // Assignments
@@ -284,10 +295,18 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   @override
   Future<QuizAttemptEntity> submitQuizAttempt(int quizId, Map<int, String> answers) async {
     final res = await _dio.post(ApiEndpoints.submitQuizAttempt(quizId), data: {
-      'answers': answers.map((k, v) => MapEntry(k.toString(), v)),
+      'answers': answers.entries.map((entry) => {
+        'questionId': entry.key,
+        'selectedAnswer': entry.value,
+      }).toList(),
     });
     final result = _unwrap(res);
     return QuizAttemptEntity.fromJson(result as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> startQuizAttempt(int quizId) async {
+    await _dio.post(ApiEndpoints.startQuizAttempt(quizId));
   }
 
   // Forum
@@ -322,8 +341,25 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   Future<List<StudentAttendanceSummary>> getStudentAttendanceSummary() async {
     const cacheKey = StorageKeys.cacheAttendance;
     try {
-      final res = await _dio.get(ApiEndpoints.studentAttendance);
-      final list = _unwrap(res) as List<dynamic>? ?? [];
+      final classes = await getMyClasses();
+      final list = await Future.wait(classes.map((courseClass) async {
+        final response = await _dio.get(ApiEndpoints.myClassAttendance(courseClass.id));
+        final records = _unwrap(response) as List<dynamic>? ?? [];
+        final statuses = records.map((record) => (record as Map<String, dynamic>)['status']?.toString()).toList();
+        final present = statuses.where((status) => status == 'PRESENT').length;
+        final late = statuses.where((status) => status == 'LATE').length;
+        final absent = statuses.where((status) => status == 'ABSENT').length;
+        final total = statuses.length;
+        return <String, dynamic>{
+          'classId': courseClass.id,
+          'className': courseClass.className,
+          'classCode': courseClass.classCode,
+          'presentCount': present,
+          'lateCount': late,
+          'absentCount': absent,
+          'absentRatio': total == 0 ? 0.0 : absent / total,
+        };
+      }));
       await sessionManager.cacheData(cacheKey, jsonEncode(list));
       return list.map((e) => StudentAttendanceSummary.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
@@ -339,7 +375,13 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   @override
   Future<List<AttendanceEntity>> getClassAttendance(int classId) async {
     try {
-      final res = await _dio.get(ApiEndpoints.classAttendance(classId));
+      final currentUser = await getCurrentUser();
+      final response = currentUser?.isLecturer == true
+          ? await _dio.get(ApiEndpoints.classAttendance(classId), queryParameters: {
+              'date': DateTime.now().toIso8601String().substring(0, 10),
+            })
+          : await _dio.get(ApiEndpoints.myClassAttendance(classId));
+      final res = response;
       final list = _unwrap(res) as List<dynamic>? ?? [];
       return list.map((e) => AttendanceEntity.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
@@ -348,9 +390,16 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getClassStudents(int classId) async {
+    final response = await _dio.get('/me/classes/$classId/students');
+    final list = _unwrap(response) as List<dynamic>? ?? [];
+    return list.cast<Map<String, dynamic>>();
+  }
+
+  @override
   Future<void> markClassAttendance(int classId, String date, List<Map<String, dynamic>> records) async {
     await _dio.post(ApiEndpoints.markAttendance(classId), data: {
-      'date': date,
+      'attendanceDate': date,
       'records': records,
     });
   }
@@ -358,9 +407,11 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
   @override
   Future<bool> submitQrAttendance(int classId, String otpToken) async {
     try {
-      await _dio.post('/attendance/qr/validate', data: {
-        'classId': classId,
-        'otpToken': otpToken,
+      final parts = otpToken.split('|');
+      if (parts.length != 4 || parts[0] != 'LEARNINGHUB_QR' || int.tryParse(parts[3]) != classId) return false;
+      await _dio.post('/attendance/qr/check-in', data: {
+        'sessionToken': parts[1],
+        'otpCode': parts[2],
       });
       return true;
     } catch (_) {
@@ -396,7 +447,8 @@ class LmsRepositoryImpl implements LmsRepository, AuthRepository, StudentReposit
 
   @override
   Future<void> updateStudentGrade(int classId, int studentId, double? midterm, double? finalScore) async {
-    await _dio.put(ApiEndpoints.updateStudentGrade(classId, studentId), data: {
+    await _dio.post(ApiEndpoints.updateStudentGrade(classId, studentId), data: {
+      'studentId': studentId,
       'midtermScore': midterm,
       'finalScore': finalScore,
     });

@@ -109,7 +109,20 @@ class StudentRepositoryImpl implements StudentRepository {
   }
 
   @override
-  Future<void> verifyPayOSPayment(int invoiceId) async {
-    await dioClient.dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
+  Future<bool> verifyPayOSPayment(int invoiceId) async {
+    final response = await dioClient.dio.post(ApiEndpoints.payOSVerifyPayment(invoiceId));
+    final invoice = _unwrap(response) as Map<String, dynamic>;
+    return invoice['status'] == 'PAID';
+  }
+
+  @override
+  Future<Map<String, dynamic>> getPaymentOptions() async {
+    final response = await dioClient.dio.get(ApiEndpoints.paymentOptions);
+    return Map<String, dynamic>.from(_unwrap(response) as Map);
+  }
+
+  @override
+  Future<void> simulateTuitionPayment(int invoiceId) async {
+    await dioClient.dio.post(ApiEndpoints.payTuition(invoiceId));
   }
 }

@@ -5,6 +5,7 @@ class TuitionItemEntity {
   final double paidAmount;
   final String status; // 'PAID', 'UNPAID', 'PARTIAL'
   final String dueDate;
+  final String? paymentMethod;
 
   const TuitionItemEntity({
     required this.id,
@@ -13,6 +14,7 @@ class TuitionItemEntity {
     required this.paidAmount,
     required this.status,
     required this.dueDate,
+    this.paymentMethod,
   });
 
   double get remainingAmount => totalAmount - paidAmount;
@@ -29,6 +31,7 @@ class TuitionItemEntity {
       paidAmount: isPaid ? amount.toDouble() : 0.0,
       status: statusVal,
       dueDate: json['dueDate'] ?? json['due_date'] ?? json['paidAt'] ?? '',
+      paymentMethod: json['paymentMethod']?.toString(),
     );
   }
 }
@@ -65,9 +68,9 @@ class PayOSPaymentEntity {
       amount: ((json['amount'] ?? 0) as num).toDouble(),
       checkoutUrl: json['checkoutUrl'] ?? '',
       qrCode: json['qrCode'] ?? '',
-      accountName: json['accountName'] ?? 'HOC VIEN CONG NGHE',
-      accountNumber: json['accountNumber'] ?? '999920269999',
-      bankName: json['bankName'] ?? 'MBBank',
+      accountName: json['accountName'] ?? '',
+      accountNumber: json['accountNumber'] ?? '',
+      bankName: json['bankName'] ?? '',
       description: json['description'] ?? '',
       status: json['status'] ?? 'PENDING',
     );

@@ -64,7 +64,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Chọn lớp học phần:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const Text('Attendance session payload:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<int>(
                   value: selectedClassId,
@@ -91,19 +91,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     }
                   },
                   icon: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
-                  label: const Text('Quét mã QR bằng Camera'),
+                  label: const Text('Scan the attendance QR code'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Hoặc nhập mã OTP (6 chữ số):', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const Text('Attendance session payload:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: otpController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
+                  keyboardType: TextInputType.text,
+                  maxLength: 100,
+                  readOnly: true,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 22, letterSpacing: 8, fontWeight: FontWeight.bold, color: AppColors.primary),
                   decoration: const InputDecoration(
@@ -136,7 +137,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   ? null
                   : () async {
                       final otp = otpController.text.trim();
-                      if (otp.length < 6) {
+                      if (!otp.startsWith('LEARNINGHUB_QR|')) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Vui lòng nhập đủ 6 chữ số OTP!'), backgroundColor: AppColors.warning),
                         );

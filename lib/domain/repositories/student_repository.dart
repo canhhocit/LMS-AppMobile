@@ -9,5 +9,7 @@ abstract class StudentRepository {
   Future<List<GradeEntity>> getMyGrades();
   Future<List<TuitionItemEntity>> getMyTuition();
   Future<PayOSPaymentEntity> createPayOSPayment(int invoiceId);
-  Future<void> verifyPayOSPayment(int invoiceId);
+  Future<bool> verifyPayOSPayment(int invoiceId);
+  Future<Map<String, dynamic>> getPaymentOptions();
+  Future<void> simulateTuitionPayment(int invoiceId);
 }
